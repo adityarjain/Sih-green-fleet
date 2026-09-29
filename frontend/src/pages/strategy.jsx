@@ -52,7 +52,7 @@ export const FuelEU = () => {
               <Tooltip {...tip(p)} formatter={(v, n) => [`${v >= 0 ? '+' : '−'}$${fmt(Math.abs(v))}M / yr`, n]} />
               <Legend {...legend(p)} />
               <ReferenceLine y={0} stroke={p.axis} />
-              <Bar dataKey="Conventional" fill={p.axis} radius={[3, 3, 3, 3]} maxBarSize={22} />
+              <Bar dataKey="Conventional" fill={p.ref} radius={[3, 3, 3, 3]} maxBarSize={22} />
               <Bar dataKey="Recommended" fill={p.s[0]} radius={[3, 3, 3, 3]} maxBarSize={22} />
             </BarChart>
           </ResponsiveContainer>
@@ -199,7 +199,7 @@ export const Roadmap = () => {
               <Tooltip {...tip(p)} formatter={(v, n) => [`${fmt(v)} g/MJ`, n]} />
               <Legend {...legend(p)} />
               <Line dataKey="Target" type="stepAfter" stroke={p.ink2} strokeDasharray="5 4" strokeWidth={1.5} dot={false} />
-              <Line dataKey="Business as usual" stroke={p.axis} strokeWidth={2} dot={false} />
+              <Line dataKey="Business as usual" stroke={p.ref} strokeWidth={2} dot={false} />
               <Line dataKey="Plan" stroke={p.s[0]} strokeWidth={2} dot={{ r: 3, fill: p.s[0] }} />
             </LineChart>
           </ResponsiveContainer>

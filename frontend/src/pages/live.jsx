@@ -101,7 +101,7 @@ const LiveFront = ({ run, reference, height = 300 }) => {
         <YAxis type="number" dataKey="y" name="CO2e" {...axis(p)} width={56} tickFormatter={(v) => `${Math.round(v)} kt`} />
         <Tooltip {...tip(p)} cursor={{ strokeDasharray: '3 3', stroke: p.axis }} formatter={(v, n) => (n === 'Annual cost' ? [`$${fmt(v)}M`, n] : [`${fmt(v, 0)} kt`, n])} />
         <Legend {...legend(p)} />
-        {reference && <Scatter name={reference.name} data={reference.data} fill={p.axis} shape={dot(3, p.axis)} isAnimationActive={false} />}
+        {reference && <Scatter name={reference.name} data={reference.data} fill={p.ref} shape={dot(3, p.ref)} isAnimationActive={false} />}
         <Scatter name="Live front" data={live} fill={p.s[0]} line={{ stroke: p.s[0], strokeWidth: 2 }} shape={dot(3.5, p.s[0], p.surface)} isAnimationActive={false} />
       </ScatterChart>
     </ResponsiveContainer>

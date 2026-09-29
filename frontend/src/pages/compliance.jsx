@@ -90,7 +90,7 @@ export const ComplianceDashboard = ({ onNavigate }) => {
               <YAxis type="category" dataKey="name" {...axis(p)} width={150} tick={{ fill: p.muted, fontSize: 10 }} />
               <Tooltip {...tip(p)} formatter={(v, n) => [`${fmt(v)} kt/yr`, n]} />
               <Legend {...legend(p)} />
-              <Bar dataKey="Conventional" fill={p.axis} radius={[0, 3, 3, 0]} maxBarSize={9} />
+              <Bar dataKey="Conventional" fill={p.ref} radius={[0, 3, 3, 0]} maxBarSize={9} />
               <Bar dataKey="Recommended" fill={p.s[0]} radius={[0, 3, 3, 0]} maxBarSize={9} />
             </BarChart>
           </ResponsiveContainer>
