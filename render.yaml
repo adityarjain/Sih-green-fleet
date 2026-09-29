@@ -1,0 +1,13 @@
+# Render Blueprint: deploys the portal as a static site (free, global CDN).
+# Model results are precomputed in frontend/src/data/results.json, so Render only builds the frontend;
+# the live optimiser and disruption replanning run in the browser. To refresh results, run
+# `.venv/bin/python fleet.py` locally and commit the updated results.json.
+services:
+  - type: web
+    name: green-fleet-sih26138
+    runtime: static
+    buildCommand: cd frontend && npm ci && npm run build
+    staticPublishPath: frontend/dist
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
