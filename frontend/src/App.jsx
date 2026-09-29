@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
-import { Atom, BadgeCheck, BookOpen, CalendarRange, CloudLightning, Coins, Compass, Gauge, Globe, LayoutDashboard, LogOut, Moon, Route, ShieldCheck, Ship, SlidersHorizontal, Sun, Zap } from 'lucide-react';
+import { Atom, BadgeCheck, BookOpen, CalendarRange, CloudLightning, Coins, Compass, FileDown, Gauge, Globe, LayoutDashboard, LogOut, Moon, Route, ShieldCheck, Ship, SlidersHorizontal, Sun, Zap } from 'lucide-react';
 import { PORTALS, Providers, useAuth, useLanguage, useScenario, useTheme } from './context';
 import { fmt } from './ui';
+import { Report } from './Report';
 import { Landing } from './pages/Landing';
 import { FleetDashboard, LaneNetwork, Planner, Prediction } from './pages/fleet';
 import { Benchmark, ComplianceDashboard, Method } from './pages/compliance';
@@ -65,6 +66,14 @@ export const Toggles = () => {
   );
 };
 
+// Browsers name the saved PDF after document.title.
+const printReport = () => {
+  const title = document.title;
+  document.title = `Green-Fleet-Plan-Report-${new Date().toISOString().slice(0, 10)}`;
+  window.print();
+  document.title = title;
+};
+
 const Header = () => {
   const { portal, user, logout } = useAuth();
   const { t } = useLanguage();
@@ -79,6 +88,10 @@ const Header = () => {
             <span>{isFleet ? t('fleetPortal', 'Fleet Operations Portal') : t('compliancePortal', 'Compliance & Analytics Portal')}</span>
           </div>
           <div className="hidden lg:block h-4 w-px bg-slate-200 dark:bg-white/[0.08]" />
+          <button type="button" onClick={printReport} title={t('downloadReport', 'Download plan report (PDF)')} aria-label={t('downloadReport', 'Download plan report (PDF)')}
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-950 dark:hover:bg-slate-100 text-xs font-semibold transition-colors">
+            <FileDown size={13} /><span className="hidden sm:inline">{t('report', 'Report')}</span>
+          </button>
           <Toggles />
           <div className="hidden xl:block pl-2 border-l border-slate-200 dark:border-white/[0.08] text-xs leading-tight">
             <div className="font-semibold text-slate-900 dark:text-white">{user.name}</div>
@@ -167,7 +180,9 @@ function Main() {
   if (!portal) return <Landing />;
   const { Page } = pages.find((p) => p.id === active) || pages[0];
   return (
-    <div className="min-h-screen bg-[#F7F8FA] dark:bg-[#06080c] dark:bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(37,99,235,0.08),rgba(0,0,0,0))] flex flex-col">
+    <>
+    <Report />
+    <div className="print:hidden min-h-screen bg-[#F7F8FA] dark:bg-[#06080c] dark:bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(37,99,235,0.08),rgba(0,0,0,0))] flex flex-col">
       <Header />
       <MobileTabs pages={pages} active={active} onChange={setActive} />
       <div className="flex-1 flex min-w-0">
@@ -177,6 +192,7 @@ function Main() {
         </main>
       </div>
     </div>
+    </>
   );
 }
 

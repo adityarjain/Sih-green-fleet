@@ -60,3 +60,9 @@
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(148, 163, 184, 0.45);
 }
+
+/* Plan report (Report.jsx): A4, always on white even in dark mode */
+@page { size: A4; margin: 14mm; }
+@media print {
+  html.dark body, body { background: #fff; color: #0f172a; }
+}
