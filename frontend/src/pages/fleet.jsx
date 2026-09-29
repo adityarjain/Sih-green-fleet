@@ -172,8 +172,11 @@ const PORTS = {
   Mundra: [69.7, 22.75, -9, -6, 'end'], 'Jebel Ali': [55.06, 25.01, 0, -12, 'start'], Cochin: [76.26, 9.97, -9, 4, 'end'],
   Visakhapatnam: [83.29, 17.69, 9, 4, 'start'], 'Port Klang': [101.39, 3.0, -9, -8, 'end'], Tuticorin: [78.18, 8.76, -9, 10, 'end'],
 };
-const W = 1000, H = 560;
-const xy = ([lon, lat]) => [((lon - 49) / 57) * W, ((28 - lat) / 29) * H];
+const W = 1000, H = 715;
+const xy = ([lon, lat]) => [((lon - 49) / 57) * W, ((36 - lat) / 37) * H];
+const INDIA = [[68.2,23.7],[69.5,24.3],[70.8,24.4],[71.1,25.5],[70.3,26.5],[70.5,27.7],[72.0,28.0],[73.4,29.9],[74.6,31.0],[74.5,32.3],[74.3,33.3],[74.0,34.5],[75.5,35.6],[77.0,35.6],[78.5,34.6],[79.0,33.0],[78.6,32.0],[79.5,31.0],[80.5,30.3],[81.0,30.1],[80.0,28.8],[81.5,28.4],[84.0,27.4],[86.0,26.6],[88.0,26.7],[88.3,27.3],[89.0,27.3],[92.0,27.8],[95.5,29.2],[97.3,28.2],[95.5,26.5],[94.7,24.0],[93.4,22.8],[92.3,23.7],[91.6,24.1],[91.2,25.2],[89.8,25.3],[89.0,26.2],[88.5,26.2],[88.1,25.0],[88.5,24.0],[89.0,22.0],[87.0,21.5],[86.5,20.0],[85.0,19.3],[83.3,17.7],[82.0,16.5],[80.3,15.5],[80.2,13.2],[79.8,11.5],[79.3,10.3],[78.2,8.9],[77.5,8.1],[76.6,8.9],[75.8,11.3],[74.8,12.9],[73.8,15.5],[73.0,17.5],[72.8,19.0],[72.7,21.0],[72.0,21.2],[70.5,20.8],[69.0,22.3],[70.0,22.9],[68.5,23.2]];
+const LANKA = [[79.9,9.8],[81.0,8.5],[81.8,7.4],[81.2,6.2],[80.2,5.95],[79.7,7.5]];
+const outline = (pts) => `M${pts.map((q) => xy(q).map((v) => v.toFixed(1)).join(',')).join('L')}Z`;
 const lanePath = (name) => {
   const [a, b] = name.split(' - ').map((n) => xy(PORTS[n]));
   const [mx, my] = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
@@ -186,7 +189,8 @@ const LaneMap = ({ lanes, selected, onSelect }) => {
   const [hover, setHover] = useState(null);
   return (
     <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto" role="img" aria-label="Lane network map from the Arabian Gulf to the Strait of Malacca">
-      {[0, 5, 10, 15, 20, 25].map((lat) => {
+      {[INDIA, LANKA].map((pts, i) => <path key={i} d={outline(pts)} fill={p.grid} fillOpacity={0.55} stroke={p.axis} strokeWidth={2} strokeLinejoin="round" />)}
+      {[0, 5, 10, 15, 20, 25, 30, 35].map((lat) => {
         const y = xy([0, lat])[1];
         return <g key={`la${lat}`}><line x1={0} x2={W} y1={y} y2={y} stroke={p.grid} strokeWidth={1.5} /><text x={8} y={y - 6} fontSize={17} fill={p.muted}>{lat}°N</text></g>;
       })}
