@@ -234,7 +234,7 @@ const LaneMap = ({ lanes, selected, onSelect }) => {
         return (
           <g key={l.lane} onClick={() => onSelect(l.lane)} onMouseEnter={() => setHover(l.lane)} onMouseLeave={() => setHover(null)} style={{ cursor: 'pointer' }}>
             <path id={id} d={lanePath(l.lane)} fill="none" stroke={fuelColor(p, l.fuel)} strokeWidth={on ? w + 4 : w} strokeLinecap="round"
-              opacity={selected && !on ? 0.4 : 1} />
+              opacity={selected && !on ? p.dim : 1} />
             <path d={lanePath(l.lane)} fill="none" stroke="transparent" strokeWidth={30} />
             <circle r={8} fill={p.surface} stroke={fuelColor(p, l.fuel)} strokeWidth={3.5} className="motion-reduce:hidden">
               <animateMotion dur={`${Math.max(2.5, l.transit_days * 2.2)}s`} repeatCount="indefinite" keyPoints="0;1;0" keyTimes="0;0.5;1" calcMode="linear"><mpath href={`#${id}`} /></animateMotion>
