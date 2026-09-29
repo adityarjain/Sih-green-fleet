@@ -3,10 +3,12 @@ import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAx
 import { R, useLanguage, useScenario, useTheme } from './context';
 
 /* ---------- palette (dataviz reference palette, light/dark steps) ---------- */
-const LIGHT = { s: ['#2a78d6', '#eb6834', '#6cc24a', '#eda100', '#e87ba4', '#0a6b2b', '#4a3aa7', '#e34948'],
-  ink: '#0b0b0b', ink2: '#52514e', muted: '#898781', grid: '#e1e0d9', axis: '#c3c2b7', surface: '#ffffff' };
-const DARK = { s: ['#3987e5', '#d95926', '#7ed957', '#c98500', '#d55181', '#1f9a45', '#9085e9', '#e66767'],
-  ink: '#ffffff', ink2: '#c3c2b7', muted: '#898781', grid: '#2c2c2a', axis: '#383835', surface: '#11141b' };
+const LIGHT = { s: ['#2a78d6', '#eb6834', '#0aa2c0', '#eda100', '#e87ba4', '#0a6b2b', '#4a3aa7', '#e34948'],
+  ink: '#0b0b0b', ink2: '#52514e', muted: '#898781', grid: '#e1e0d9', axis: '#c3c2b7', surface: '#ffffff',
+  sea: '#f1f6fb', land: '#e7e6e0', india: '#d6d3c8', border: '#9c998e' };
+const DARK = { s: ['#3987e5', '#d95926', '#1aa3c2', '#c98500', '#d55181', '#1f9a45', '#9085e9', '#e66767'],
+  ink: '#ffffff', ink2: '#c3c2b7', muted: '#898781', grid: '#2c2c2a', axis: '#383835', surface: '#11141b',
+  sea: '#0f1822', land: '#1e2126', india: '#2d3139', border: '#6b6e75' };
 export const usePalette = () => (useTheme().isDark ? DARK : LIGHT);
 
 const FUEL_INDEX = Object.fromEntries(R.fuels.map((f, i) => [f.name, i]));

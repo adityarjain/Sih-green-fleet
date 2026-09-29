@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Activity, Anchor, CheckCircle2, Cpu, Fuel, Gauge, Lightbulb, MapPinned, Route, ShieldCheck, Ship, SlidersHorizontal, Sparkles, Target, Wallet } from 'lucide-react';
 import { Bar, BarChart, CartesianGrid, Legend, Line, LineChart, ReferenceLine, ResponsiveContainer, Scatter, ScatterChart, Tooltip, XAxis, YAxis } from 'recharts';
 import { R, useLanguage, useScenario } from '../context';
+import BASEMAP from '../data/basemap.json';
 import {
   axis, CapBadge, dot, fmt, fuelColor, fuelOrder, FuelChip, FuelMixChart, grid, LaneTable, legend, LinkButton, PageHeader, Panel,
   pct, PlanKpis, PrimaryButton, ScenarioControls, ScenarioStrip, Stat, tip, usePalette,
@@ -167,21 +168,44 @@ export const Planner = () => {
 
 /* ================================================================ lane network */
 const PORTS = {
-  JNPT: [72.95, 18.95, -9, 4, 'end'], Colombo: [79.84, 6.94, 9, 14, 'start'], Chennai: [80.29, 13.08, 9, 4, 'start'],
+  JNPT: [72.95, 18.95, -9, 4, 'end'], Colombo: [79.84, 6.94, 9, 12, 'start'], Chennai: [80.29, 13.08, 9, 4, 'start'],
   Singapore: [103.82, 1.26, -9, 12, 'end'], Kolkata: [88.3, 22.55, -9, -7, 'end'], Chittagong: [91.8, 22.33, 9, -6, 'start'],
-  Mundra: [69.7, 22.75, -9, -6, 'end'], 'Jebel Ali': [55.06, 25.01, 0, -12, 'start'], Cochin: [76.26, 9.97, -9, 4, 'end'],
-  Visakhapatnam: [83.29, 17.69, 9, 4, 'start'], 'Port Klang': [101.39, 3.0, -9, -8, 'end'], Tuticorin: [78.18, 8.76, -9, 10, 'end'],
+  Mundra: [69.7, 22.75, -9, -7, 'end'], 'Jebel Ali': [55.06, 25.01, 0, 14, 'middle'], Cochin: [76.26, 9.97, -9, -1, 'end'],
+  Visakhapatnam: [83.29, 17.69, 9, 4, 'start'], 'Port Klang': [101.39, 3.0, -9, -8, 'end'], Tuticorin: [78.18, 8.76, -9, 12, 'end'],
 };
-const W = 1000, H = 715;
-const xy = ([lon, lat]) => [((lon - 49) / 57) * W, ((36 - lat) / 37) * H];
-const INDIA = [[68.2,23.7],[69.5,24.3],[70.8,24.4],[71.1,25.5],[70.3,26.5],[70.5,27.7],[72.0,28.0],[73.4,29.9],[74.6,31.0],[74.5,32.3],[74.3,33.3],[74.0,34.5],[75.5,35.6],[77.0,35.6],[78.5,34.6],[79.0,33.0],[78.6,32.0],[79.5,31.0],[80.5,30.3],[81.0,30.1],[80.0,28.8],[81.5,28.4],[84.0,27.4],[86.0,26.6],[88.0,26.7],[88.3,27.3],[89.0,27.3],[92.0,27.8],[95.5,29.2],[97.3,28.2],[95.5,26.5],[94.7,24.0],[93.4,22.8],[92.3,23.7],[91.6,24.1],[91.2,25.2],[89.8,25.3],[89.0,26.2],[88.5,26.2],[88.1,25.0],[88.5,24.0],[89.0,22.0],[87.0,21.5],[86.5,20.0],[85.0,19.3],[83.3,17.7],[82.0,16.5],[80.3,15.5],[80.2,13.2],[79.8,11.5],[79.3,10.3],[78.2,8.9],[77.5,8.1],[76.6,8.9],[75.8,11.3],[74.8,12.9],[73.8,15.5],[73.0,17.5],[72.8,19.0],[72.7,21.0],[72.0,21.2],[70.5,20.8],[69.0,22.3],[70.0,22.9],[68.5,23.2]];
-const LANKA = [[79.9,9.8],[81.0,8.5],[81.8,7.4],[81.2,6.2],[80.2,5.95],[79.7,7.5]];
-const outline = (pts) => `M${pts.map((q) => xy(q).map((v) => v.toFixed(1)).join(',')).join('L')}Z`;
+// Sea waypoints (lon, lat) so routes follow real shipping paths instead of crossing land.
+const ROUTES = {
+  'JNPT - Colombo': [[72.5, 18.6], [72.3, 16], [73.6, 12.5], [75.3, 9.5], [76.8, 8.0], [77.6, 7.5], [78.8, 7.0], [79.5, 6.95]],
+  'Cochin - Colombo': [[76.0, 9.6], [76.7, 8.3], [77.6, 7.5], [78.8, 7.0], [79.5, 6.95]],
+  'Tuticorin - Colombo': [[78.5, 8.4], [79.0, 7.6], [79.5, 7.05]],
+  'Chennai - Singapore': [[81.0, 12.6], [86, 9.5], [92.5, 6.6], [95.8, 6.1], [97.8, 5.6], [99.9, 3.6], [101.3, 2.4], [102.8, 1.5], [103.5, 1.15]],
+  'Visakhapatnam - Port Klang': [[84.0, 17.3], [88.5, 12.0], [92.6, 7.4], [94.5, 6.3], [96.5, 5.95], [97.8, 5.7], [99.8, 3.9], [100.9, 3.1]],
+  'Kolkata - Chittagong': [[88.15, 22.0], [88.22, 21.5], [88.45, 20.9], [89.6, 20.95], [91.0, 21.5], [91.65, 22.1]],
+  'Mundra - Jebel Ali': [[69.1, 22.65], [68.3, 22.7], [65.5, 23.6], [62, 24.4], [59, 24.8], [57.2, 25.5], [56.6, 26.45], [55.9, 26.25], [55.3, 25.45], [54.95, 25.1]],
+  'JNPT - Mundra': [[72.6, 18.9], [72.1, 19.9], [71.3, 20.5], [70.2, 20.65], [69.3, 21.4], [68.85, 22.3], [69.1, 22.65]],
+};
+// Equirectangular, true scale at 15°N.
+const LON0 = 50, LAT1 = 37.5, K = 1000 / 56;
+const W = 1000, H = Math.round((LAT1 + 1.5) * K / Math.cos(Math.PI / 12));
+const xy = ([lon, lat]) => [(lon - LON0) * K, ((LAT1 - lat) * K) / Math.cos(Math.PI / 12)];
+const ring = (flat) => {
+  let d = '';
+  for (let i = 0; i < flat.length; i += 2) d += `${i ? 'L' : 'M'}${xy([flat[i], flat[i + 1]]).map((v) => v.toFixed(1)).join(',')}`;
+  return `${d}Z`;
+};
+const LAND = BASEMAP.land.map(ring).join('');
+const INDIA = BASEMAP.india.map(ring).join('');
 const lanePath = (name) => {
-  const [a, b] = name.split(' - ').map((n) => xy(PORTS[n]));
-  const [mx, my] = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
-  const [dx, dy] = [b[0] - a[0], b[1] - a[1]];
-  return `M${a[0]},${a[1]} Q${mx - dy * 0.14},${my + dx * 0.14} ${b[0]},${b[1]}`;
+  const [a, b] = name.split(' - ');
+  const pts = [PORTS[a], ...ROUTES[name], PORTS[b]].map(xy);
+  let d = `M${pts[0].join(',')}`;
+  for (let i = 0; i < pts.length - 1; i++) { // Catmull-Rom -> cubic Bezier
+    const [p0, p1, p2, p3] = [pts[i - 1] ?? pts[i], pts[i], pts[i + 1], pts[i + 2] ?? pts[i + 1]];
+    const c1 = [p1[0] + (p2[0] - p0[0]) / 6, p1[1] + (p2[1] - p0[1]) / 6];
+    const c2 = [p2[0] - (p3[0] - p1[0]) / 6, p2[1] - (p3[1] - p1[1]) / 6];
+    d += ` C${c1.map((v) => v.toFixed(1))} ${c2.map((v) => v.toFixed(1))} ${p2.map((v) => v.toFixed(1))}`;
+  }
+  return d;
 };
 
 const LaneMap = ({ lanes, selected, onSelect }) => {
@@ -189,14 +213,19 @@ const LaneMap = ({ lanes, selected, onSelect }) => {
   const [hover, setHover] = useState(null);
   return (
     <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto" role="img" aria-label="Lane network map from the Arabian Gulf to the Strait of Malacca">
-      {[INDIA, LANKA].map((pts, i) => <path key={i} d={outline(pts)} fill={p.grid} fillOpacity={0.55} stroke={p.axis} strokeWidth={2} strokeLinejoin="round" />)}
+      <rect width={W} height={H} fill={p.sea} />
+      <path d={LAND} fill={p.land} stroke={p.sea} strokeWidth={1.2} strokeLinejoin="round" />
+      {/* stroke then refill: keeps India's outer boundary and hides internal seams between merged J&K/Ladakh parts */}
+      <path d={INDIA} fill={p.india} stroke={p.border} strokeWidth={3} strokeLinejoin="round" />
+      <path d={INDIA} fill={p.india} />
+      <text {...(([x, y]) => ({ x, y }))(xy([78.2, 22.5]))} fontSize={30} fontWeight={700} letterSpacing={8} textAnchor="middle" fill={p.border} opacity={0.55}>INDIA</text>
       {[0, 5, 10, 15, 20, 25, 30, 35].map((lat) => {
         const y = xy([0, lat])[1];
-        return <g key={`la${lat}`}><line x1={0} x2={W} y1={y} y2={y} stroke={p.grid} strokeWidth={1.5} /><text x={8} y={y - 6} fontSize={17} fill={p.muted}>{lat}°N</text></g>;
+        return <g key={`la${lat}`}><line x1={0} x2={W} y1={y} y2={y} stroke={p.border} strokeOpacity={0.18} strokeWidth={1.5} /><text x={8} y={y - 6} fontSize={17} fill={p.muted} style={{ paintOrder: 'stroke', stroke: p.sea, strokeWidth: 4 }}>{lat}°N</text></g>;
       })}
       {[60, 70, 80, 90, 100].map((lon) => {
         const x = xy([lon, 0])[0];
-        return <g key={`lo${lon}`}><line y1={0} y2={H} x1={x} x2={x} stroke={p.grid} strokeWidth={1.5} /><text x={x + 6} y={H - 8} fontSize={17} fill={p.muted}>{lon}°E</text></g>;
+        return <g key={`lo${lon}`}><line y1={0} y2={H} x1={x} x2={x} stroke={p.border} strokeOpacity={0.18} strokeWidth={1.5} /><text x={x + 6} y={H - 8} fontSize={17} fill={p.muted}>{lon}°E</text></g>;
       })}
       {lanes.map((l) => {
         const on = selected === l.lane || hover === l.lane;
