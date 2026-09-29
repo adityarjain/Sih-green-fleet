@@ -247,15 +247,15 @@ export const Disruption = () => {
 
       <div className="flex flex-wrap items-stretch gap-2">
         <FlowStep n={1} title="Disruption applied" state={chosen.length ? 'done' : 'idle'}>{chosen.length ? `${chosen.length} active` : 'Select at least one'}</FlowStep>
-        <ArrowRight className="self-center text-slate-400 hidden sm:block" size={16} />
+        <ArrowRight className="self-center text-slate-400 hidden lg:block" size={16} />
         <FlowStep n={2} title="Current plan still valid?" state={!chosen.length ? 'idle' : broken.length ? 'warn' : 'done'}>
           {broken.length ? `No: breaks ${broken.map(([k]) => VIOLATION_LABEL[k]).join(', ')}` : 'Yes: plan stays feasible; costs update'}
         </FlowStep>
-        <ArrowRight className="self-center text-slate-400 hidden sm:block" size={16} />
+        <ArrowRight className="self-center text-slate-400 hidden lg:block" size={16} />
         <FlowStep n={3} title="Quantum-inspired re-optimisation" state={after ? 'done' : running ? 'active' : 'idle'}>
           {after ? `Done in ${fmt(run.ms / 1000, 1)} s` : running ? `Generation ${run.gen}…` : 'Press Replan'}
         </FlowStep>
-        <ArrowRight className="self-center text-slate-400 hidden sm:block" size={16} />
+        <ArrowRight className="self-center text-slate-400 hidden lg:block" size={16} />
         <FlowStep n={4} title="New plan approved" state={after ? 'done' : 'idle'}>{after ? `${t(s.pick, s.pick)} plan, all constraints satisfied` : 'Waiting for re-optimisation'}</FlowStep>
       </div>
 

@@ -39,7 +39,7 @@ export const Brand = ({ small }) => {
       <div className="min-w-0">
         <div className="flex items-center gap-2">
           <h1 className="text-xs sm:text-sm font-bold tracking-tight text-slate-900 dark:text-white uppercase truncate">{t('systemTitle', 'Green Fleet Optimization System')}</h1>
-          {!small && <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-slate-100 text-slate-600 border border-slate-200 dark:bg-white/[0.06] dark:text-slate-400 dark:border-white/[0.08] whitespace-nowrap">
+          {!small && <span className="hidden lg:inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-slate-100 text-slate-600 border border-slate-200 dark:bg-white/[0.06] dark:text-slate-400 dark:border-white/[0.08] whitespace-nowrap">
             {t('systemNotice', 'Maritime Decarbonisation • SIH26138')}</span>}
         </div>
         <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium truncate">{t('systemSubtitle', 'Quantum-Inspired Fuel Prediction & Fleet Planning')}</p>
@@ -74,11 +74,11 @@ const Header = () => {
       <div className="px-4 sm:px-6 py-2.5 flex items-center justify-between gap-4">
         <Brand />
         <div className="flex items-center gap-2.5 shrink-0">
-          <div className="hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold bg-slate-100 text-slate-700 dark:bg-white/[0.05] dark:text-slate-300 border border-slate-200/80 dark:border-white/[0.08]">
+          <div className="hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold bg-slate-100 text-slate-700 dark:bg-white/[0.05] dark:text-slate-300 border border-slate-200/80 dark:border-white/[0.08]">
             {isFleet ? <Compass size={13} className="text-macblue-500" /> : <ShieldCheck size={13} className="text-macblue-500" />}
             <span>{isFleet ? t('fleetPortal', 'Fleet Operations Portal') : t('compliancePortal', 'Compliance & Analytics Portal')}</span>
           </div>
-          <div className="hidden md:block h-4 w-px bg-slate-200 dark:bg-white/[0.08]" />
+          <div className="hidden lg:block h-4 w-px bg-slate-200 dark:bg-white/[0.08]" />
           <Toggles />
           <div className="hidden xl:block pl-2 border-l border-slate-200 dark:border-white/[0.08] text-xs leading-tight">
             <div className="font-semibold text-slate-900 dark:text-white">{user.name}</div>

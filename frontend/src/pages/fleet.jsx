@@ -275,9 +275,9 @@ export const LaneNetwork = () => {
       <ScenarioStrip />
       <div className="grid lg:grid-cols-3 gap-5">
         <Panel className="lg:col-span-2" icon={MapPinned} title="Service network"
-          action={<div className="hidden sm:flex flex-wrap gap-1.5 justify-end">{fuels.map((f) => <FuelChip key={f} name={f} />)}</div>}>
+          action={<div className="hidden lg:flex flex-wrap gap-1.5 justify-end">{fuels.map((f) => <FuelChip key={f} name={f} />)}</div>}>
           <LaneMap lanes={plan.lanes} selected={sel} onSelect={setSel} />
-          <div className="sm:hidden mt-3 flex flex-wrap gap-1.5">{fuels.map((f) => <FuelChip key={f} name={f} />)}</div>
+          <div className="lg:hidden mt-3 flex flex-wrap gap-1.5">{fuels.map((f) => <FuelChip key={f} name={f} />)}</div>
         </Panel>
         <Panel icon={Anchor} title={sel}>
           <div className="flex items-center justify-between mb-3"><FuelChip name={l.fuel} /><span className="text-[11px] text-slate-500 dark:text-slate-400">Recommended plan</span></div>
