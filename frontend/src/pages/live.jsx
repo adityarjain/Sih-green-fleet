@@ -289,21 +289,23 @@ export const Disruption = () => {
                 ))}
               </div>
               <div className="-mx-4">
-                <table className="mac-table w-full table-fixed [&_td]:align-top [&_td]:leading-snug">
-                  <colgroup><col className="w-[24%]" /><col className="w-[27%]" /><col className="w-[29%]" /><col className="w-[20%]" /></colgroup>
-                  <thead><tr><th>Lane</th><th>Before</th><th>After</th><th>Change</th></tr></thead>
+                <table className="mac-table w-full table-fixed [&_td]:align-top [&_td]:leading-snug [&_td]:px-1.5 [&_th]:px-1.5 [&_td]:text-[11px] sm:[&_td]:px-4 sm:[&_th]:px-4 sm:[&_td]:text-xs">
+                  <colgroup><col className="w-[30%] sm:w-[23%]" /><col className="w-[32%] sm:w-[28%]" /><col className="w-[38%] sm:w-[29%]" /><col className="w-0 sm:w-[20%]" /></colgroup>
+                  <thead><tr><th>Lane</th><th>Before</th><th>After</th><th className="hidden sm:table-cell">Change</th></tr></thead>
                   <tbody>
                     {after.d.lanes.map((l, i) => {
                       const o = before.lanes[i];
                       const suspended = P.demand[i] === 0;
                       const tags = suspended ? ['Suspended'] : [o.v !== l.v && 'Vessel', o.s !== l.s && (l.speed < o.speed ? 'Slower' : 'Faster'), o.f !== l.f && 'Fuel', o.sh !== l.sh && 'Shore power'].filter(Boolean);
+                      const tagEls = tags.length ? tags.map((x) => <span key={x} className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-orange-100 text-orange-900 dark:bg-orange-950/60 dark:text-orange-200">{x}</span>) : <span className="text-[10px] sm:text-[11px] text-slate-400">Unchanged</span>;
                       return (
                         <tr key={l.lane} className={tags.length ? 'bg-orange-50/50 dark:bg-orange-950/10' : ''}>
-                          <td className="font-semibold text-slate-900 dark:text-white">{l.lane}</td>
-                          <td className="text-slate-500"><span className="whitespace-nowrap">{VESSEL[o.v].split(' ')[0]} · {o.speed} kn</span><br />{FUEL[o.f]}</td>
+                          <td className="font-semibold text-slate-900 dark:text-white max-sm:[overflow-wrap:anywhere]">{l.lane}</td>
+                          <td className="text-slate-500"><span className="sm:whitespace-nowrap">{VESSEL[o.v].split(' ')[0]} · {o.speed} kn</span><br />{FUEL[o.f]}</td>
                           <td>{suspended ? <span className="text-slate-500">No cargo: port closed</span>
-                            : <><span className="whitespace-nowrap text-slate-900 dark:text-white">{VESSEL[l.v].split(' ')[0]} · {l.speed} kn</span><div className="mt-1"><FuelChip name={FUEL[l.f]} /></div></>}</td>
-                          <td><div className="flex flex-wrap gap-1">{tags.length ? tags.map((x) => <span key={x} className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-orange-100 text-orange-900 dark:bg-orange-950/60 dark:text-orange-200">{x}</span>) : <span className="text-[11px] text-slate-400">Unchanged</span>}</div></td>
+                            : <><span className="sm:whitespace-nowrap text-slate-900 dark:text-white">{VESSEL[l.v].split(' ')[0]} · {l.speed} kn</span><div className="mt-1"><FuelChip name={FUEL[l.f]} /></div></>}
+                            <div className="sm:hidden mt-1.5 flex flex-wrap gap-1">{tagEls}</div></td>
+                          <td className="hidden sm:table-cell"><div className="flex flex-wrap gap-1">{tagEls}</div></td>
                         </tr>
                       );
                     })}

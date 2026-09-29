@@ -75,10 +75,10 @@ export const Stat = ({ label, value, sub, icon: Icon, tone = 'text-slate-700 dar
   <div className="unicolor-card flex items-start justify-between gap-3 min-w-0">
     <div className="min-w-0">
       <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider block leading-tight">{label}</span>
-      <span className="text-xl sm:text-2xl font-bold font-mono text-slate-900 dark:text-white mt-0.5 block">{value}</span>
+      <span className="text-lg sm:text-2xl font-bold font-mono text-slate-900 dark:text-white mt-0.5 block">{value}</span>
       <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium block mt-0.5">{sub}</span>
     </div>
-    {Icon && <div className={`p-2.5 rounded-md bg-slate-100 dark:bg-white/[0.06] shrink-0 ${tone}`}><Icon size={18} /></div>}
+    {Icon && <div className={`hidden sm:block p-2.5 rounded-md bg-slate-100 dark:bg-white/[0.06] shrink-0 ${tone}`}><Icon size={18} /></div>}
   </div>
 );
 

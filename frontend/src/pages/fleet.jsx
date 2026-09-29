@@ -221,11 +221,11 @@ const LaneMap = ({ lanes, selected, onSelect }) => {
       <text {...(([x, y]) => ({ x, y }))(xy([78.2, 22.5]))} fontSize={30} fontWeight={700} letterSpacing={8} textAnchor="middle" fill={p.border} opacity={0.55}>INDIA</text>
       {[0, 5, 10, 15, 20, 25, 30, 35].map((lat) => {
         const y = xy([0, lat])[1];
-        return <g key={`la${lat}`}><line x1={0} x2={W} y1={y} y2={y} stroke={p.border} strokeOpacity={0.18} strokeWidth={1.5} /><text x={8} y={y - 6} fontSize={17} fill={p.muted} style={{ paintOrder: 'stroke', stroke: p.sea, strokeWidth: 4 }}>{lat}°N</text></g>;
+        return <g key={`la${lat}`}><line x1={0} x2={W} y1={y} y2={y} stroke={p.border} strokeOpacity={0.18} strokeWidth={1.5} /><text x={8} y={y - 6} fontSize={17} className="max-sm:text-[26px]" fill={p.muted} style={{ paintOrder: 'stroke', stroke: p.sea, strokeWidth: 4 }}>{lat}°N</text></g>;
       })}
       {[60, 70, 80, 90, 100].map((lon) => {
         const x = xy([lon, 0])[0];
-        return <g key={`lo${lon}`}><line y1={0} y2={H} x1={x} x2={x} stroke={p.border} strokeOpacity={0.18} strokeWidth={1.5} /><text x={x + 6} y={H - 8} fontSize={17} fill={p.muted}>{lon}°E</text></g>;
+        return <g key={`lo${lon}`}><line y1={0} y2={H} x1={x} x2={x} stroke={p.border} strokeOpacity={0.18} strokeWidth={1.5} /><text x={x + 6} y={H - 8} fontSize={17} className="max-sm:text-[26px]" fill={p.muted}>{lon}°E</text></g>;
       })}
       {lanes.map((l) => {
         const on = selected === l.lane || hover === l.lane;
@@ -247,7 +247,7 @@ const LaneMap = ({ lanes, selected, onSelect }) => {
         return (
           <g key={name}>
             <circle cx={x} cy={y} r={8} fill={p.surface} stroke={p.ink} strokeWidth={3} />
-            <text x={x + dx * 1.8} y={y + dy * 1.8} fontSize={21} fontWeight={600} fill={p.ink2} textAnchor={anchor} style={{ paintOrder: 'stroke', stroke: p.surface, strokeWidth: 6 }}>{name}</text>
+            <text x={x + dx * 1.8} y={y + dy * 1.8} fontSize={21} className="max-sm:text-[32px]" fontWeight={600} fill={p.ink2} textAnchor={anchor} style={{ paintOrder: 'stroke', stroke: p.surface, strokeWidth: 6 }}>{name}</text>
           </g>
         );
       })}
@@ -277,6 +277,7 @@ export const LaneNetwork = () => {
         <Panel className="lg:col-span-2" icon={MapPinned} title="Service network"
           action={<div className="hidden sm:flex flex-wrap gap-1.5 justify-end">{fuels.map((f) => <FuelChip key={f} name={f} />)}</div>}>
           <LaneMap lanes={plan.lanes} selected={sel} onSelect={setSel} />
+          <div className="sm:hidden mt-3 flex flex-wrap gap-1.5">{fuels.map((f) => <FuelChip key={f} name={f} />)}</div>
         </Panel>
         <Panel icon={Anchor} title={sel}>
           <div className="flex items-center justify-between mb-3"><FuelChip name={l.fuel} /><span className="text-[11px] text-slate-500 dark:text-slate-400">Recommended plan</span></div>

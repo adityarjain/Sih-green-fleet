@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Atom, BadgeCheck, BookOpen, CalendarRange, CloudLightning, Coins, Compass, Gauge, Globe, LayoutDashboard, LogOut, Moon, Route, ShieldCheck, Ship, SlidersHorizontal, Sun, Zap } from 'lucide-react';
 import { PORTALS, Providers, useAuth, useLanguage, useScenario, useTheme } from './context';
 import { fmt } from './ui';
@@ -137,10 +137,15 @@ const Sidebar = ({ pages, active, onChange }) => {
 
 const MobileTabs = ({ pages, active, onChange }) => {
   const { t } = useLanguage();
+  const nav = useRef(null);
+  useEffect(() => {
+    const b = nav.current?.querySelector('[aria-current="page"]');
+    if (b) nav.current.scrollTo({ left: b.offsetLeft - 12, behavior: 'smooth' });
+  }, [active]);
   return (
-    <nav className="md:hidden flex gap-1 overflow-x-auto px-3 py-2 border-b border-slate-200/80 dark:border-white/[0.08] bg-white/70 dark:bg-black/45 backdrop-blur-2xl">
+    <nav ref={nav} className="md:hidden flex gap-1 overflow-x-auto px-3 py-2 border-b border-slate-200/80 dark:border-white/[0.08] bg-white/70 dark:bg-black/45 backdrop-blur-2xl">
       {pages.map(({ id, key, label, icon: Icon }) => (
-        <button key={id} type="button" onClick={() => onChange(id)}
+        <button key={id} type="button" onClick={() => onChange(id)} aria-current={active === id ? 'page' : undefined}
           className={`shrink-0 flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium ${active === id
             ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-950' : 'text-slate-600 dark:text-slate-300'}`}>
           <Icon size={13} />{t(key, label)}
