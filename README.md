@@ -1,52 +1,104 @@
-# Green Fleet Optimization System (SIH26138)
+<div align="center">
 
-Quantum-inspired fuel consumption prediction and green fleet optimisation for eight Indian container lanes
-(Arabian Gulf to the Strait of Malacca). The system predicts fuel burn per vessel and sea state, then uses a
-quantum-inspired evolutionary algorithm (QIEA) to choose vessel mix, cruising speed, alternative fuel and shore
-power per lane, trading annual cost against well-to-wake CO2e under carbon-price and FuelEU-style GHG-cap scenarios.
+# Green Fleet Optimization System
 
-## How it maps to the SIH26138 deliverables
+**Quantum-inspired fuel prediction and green fleet planning for eight Indian container lanes**
 
-| # | Deliverable | Where it lives |
-|---|---|---|
-| 1 | Fuel consumption prediction model | `fleet.py` (`physics`, `fit_hybrid`, `model_search`, `mrv_validation`); UI: **Fuel Prediction**, **Real-Ship Validation** |
-| 2 | Mathematical optimisation formulation | `fleet.py` (`lanes_eval`, `evaluate`); UI: **Method & Assumptions** |
-| 3 | Quantum-inspired optimisation algorithm | `fleet.py` (`qiea`), browser port in `frontend/src/engine.js`; UI: **Live Optimiser** (Q-bit grid) |
-| 4 | Software platform / decision support | React portal in `frontend/`: 36 scenarios, lane map, disruption replanning, FuelEU penalty and pooling, 2025-2035 roadmap, **Report** button (PDF) |
-| 5 | Demonstration | **Optimiser Benchmark** (vs NSGA-II and random search, 8/16/32 lanes), **Real-Ship Validation** (820 EU MRV container ships), this guide |
+Smart India Hackathon 2026 · Problem Statement **SIH26138** · Team **C-Suite**
+
+[![Live demo](https://img.shields.io/badge/Live%20demo-sih--green--fleet.onrender.com-0a7d5a?style=for-the-badge)](https://sih-green-fleet.onrender.com/)
+
+![React 19](https://img.shields.io/badge/React-19-149eca) ![Vite](https://img.shields.io/badge/Vite-646cff) ![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4-38bdf8) ![Python](https://img.shields.io/badge/Python-3.12-3776ab) ![scikit-learn](https://img.shields.io/badge/scikit--learn-GBM-f7931e) ![No backend](https://img.shields.io/badge/backend-none-555)
+
+<img src="docs/dashboard.png" alt="Fleet dashboard showing annual cost, CO2e, fuel energy and GHG intensity for the recommended plan" width="900">
+
+</div>
+
+---
+
+## What it does
+
+Fuel is a fleet's biggest cost and its biggest emissions source. A fleet manager has to decide **which vessel, how fast, which fuel and whether to use shore power** on every lane, while still carrying all the cargo on time and meeting emission rules. This project does that in three steps:
+
+1. **Predict** fuel burn for any vessel, speed and sea state, with a 90% range.
+2. **Optimise** the whole fleet with a quantum-inspired evolutionary algorithm (QIEA), trading annual cost against well-to-wake CO₂e.
+3. **Decide and adapt**: pick the cheapest, balanced or greenest plan, check FuelEU compliance, and re-optimise live when a disruption hits.
+
+## Results
+
+Default scenario: $100/t CO₂e carbon price, FuelEU 2030 cap, balanced plan, against a conventional fleet running VLSFO at design speed.
+
+| Metric | Result |
+|---|---|
+| Well-to-wake CO₂e | **−56%** (661 → 289 kt/yr) |
+| Fuel burned | **−23%** (175.7 → 134.7 kt VLSFO-eq/yr) |
+| Annual cost | +9% ($236.2M → $256.6M) |
+| GHG intensity | 52.4 g/MJ, **meets** the FuelEU 2030 cap of 85.69 |
+| Fuel prediction error | **3.93%** MAPE on held-out voyages |
+| Real-ship check | 15.7% error on **820** EU MRV 2024 container ships after calibration |
+| Early search | QIEA hypervolume **0.608** vs NSGA-II 0.192 at ~25% of budget (3.2×) |
+
+At full budget NSGA-II is slightly ahead on 8 lanes (0.687 vs 0.675), and QIEA edges it at 32 lanes (0.719 vs 0.716). Its advantage is reaching good plans quickly.
+
+## Features
+
+**Fleet Operations portal**
+- **Dashboard**: the recommended plan, fuel mix and fleet use for the active scenario
+- **Scenario Planner**: 36 scenarios (carbon price × FuelEU cap × grid × forecast) with the full Pareto front
+- **Live Optimiser**: runs the QIEA in your browser and animates the Q-bit grid
+- **Disruption Replanning**: cyclone, port closure, fuel price shock, ships off-hire, biofuel supply cut
+- **Lane Network**: map of the eight lanes on real coastlines
+- **Fuel Prediction**: physics vs ML vs hybrid, prediction interval, feature importance
+
+**Compliance & Analytics portal**
+- FuelEU penalty and pooling, a 2025–2035 transition roadmap, real-ship validation, optimiser benchmark, method and assumptions
+
+**Everywhere**: a one-click **PDF plan report**, dark mode, English and Hindi, and phone and tablet layouts.
+
+<img src="docs/lane-plan.png" alt="Lane plan table with vessel, speed, fuel and CO2e per lane" width="900">
+
+## How it works
+
+```mermaid
+flowchart LR
+  A[Voyage, vessel, fuel<br/>and lane data] --> B[Hybrid fuel model<br/>physics × GBM]
+  B --> C[72-bit fleet genome<br/>9 bits × 8 lanes]
+  C --> D[QIEA<br/>cost vs CO₂e]
+  D --> E{Constraints OK?}
+  E -- yes --> F[Pareto front<br/>cheapest · balanced · greenest]
+  E -- no --> D
+  F --> G{Disruption?}
+  G -- yes --> D
+```
+
+**Fuel prediction.** An admiralty-law physics baseline (design fuel × (speed / design speed)³, scaled by load) is multiplied by a gradient-boosting correction for weather (Beaufort), head sea, hull fouling and vessel effects. The same quantum-inspired search chooses the model's inputs and settings (a 15-bit genome), and split-conformal prediction gives a 90% interval used by the cautious (P90) forecast.
+
+**Decisions.** Each lane has 9 bits: vessel class (2), cruising speed (3, from 10 to 20.5 kn), fuel (3: VLSFO, LNG, Bio-LNG, B30 biofuel, grey methanol, bio-methanol, green ammonia, green hydrogen) and shore power (1).
+
+**Objectives.** Minimise annual cost ($M: fuel, carbon, charter, shore power) and well-to-wake CO₂e (kt/yr). Weekly cargo demand is always met, because ships are sized from demand, capacity and round-trip time.
+
+**Constraints.** Speed limit, transit time, bunkering range, fleet size per class, fuel supply and the GHG-intensity cap. Any feasible plan ranks above any infeasible one.
+
+**QIEA.** Each bit is a Q-bit angle θ with P(1) = sin²θ. Offspring come from superposition recombination of two archive parents, a rotation gate (Δθ = 0.05π) pulls toward good plans, and a NOT gate mutates. The Pareto archive holds 60 plans, pruned by crowding distance; the population is 20.
 
 ## Architecture
 
 ```
-fleet.py  (Python: prediction, optimisation, benchmarks, 36 scenarios, roadmap)
-   │  writes
+fleet.py                          Python: prediction, optimisation, benchmarks, 36 scenarios, roadmap
+   │ writes
    ▼
-frontend/src/data/results.json  (precomputed results, ~360 KB)
-   │  imported at build time
+frontend/src/data/results.json    precomputed results
+   │ bundled at build time
    ▼
-frontend/  (React 19 + Vite + Tailwind + Recharts static site)
-   └─ src/engine.js  QIEA + plan evaluator in JavaScript: Live Optimiser and Disruption Replanning run in the browser
+frontend/                         React 19 + Vite + Tailwind + Recharts static site
+   └─ src/engine.js               QIEA + plan evaluator in JavaScript (live optimiser, replanning)
 ```
 
-There is no backend server. Everything the UI shows is either precomputed by `fleet.py` or computed in the browser
-by `engine.js`, which `npm run check` verifies against the Python results.
+There is **no backend**. Everything is either precomputed by `fleet.py` or computed in the browser by `engine.js`, and `npm run check` confirms the JavaScript engine reproduces the Python results exactly.
 
-## Repository layout
+## Quick start
 
-| Path | Purpose |
-|---|---|
-| `fleet.py` | Whole Python pipeline; `main()` writes `results.json` |
-| `requirements.txt` | Python dependencies (numpy, scikit-learn, openpyxl) |
-| `data/mrv/mrv_2024.xlsx` | EU MRV 2024 public emission report (optional input for real-ship calibration) |
-| `basemap.py` | One-off script that built `frontend/src/data/basemap.json` from Natural Earth 1:50m |
-| `frontend/src/pages/` | Portal pages: `fleet.jsx`, `live.jsx`, `compliance.jsx`, `strategy.jsx`, `Landing.jsx` |
-| `frontend/src/Report.jsx` | Printable plan report behind the header **Report** button |
-| `frontend/engine.check.mjs` | Parity check between `engine.js` and `fleet.py` |
-| `render.yaml` | Render Blueprint (static site) |
-
-## Quick start: run the portal
-
-Requires Node 20+ (Render builds with Node 22).
+Requires Node 20+.
 
 ```bash
 cd frontend
@@ -54,64 +106,55 @@ npm ci
 npm run dev
 ```
 
-Open the printed local URL, pick a portal on the landing page, and sign in (demo roles, no password).
+Open the local URL, pick a portal and sign in (demo roles, no password).
 
-- **Fleet Operations portal**: Dashboard, Scenario Planner, Live Optimiser, Disruption Replanning, Lane Network, Fuel Prediction.
-- **Compliance & Analytics portal**: Compliance Overview, FuelEU Penalty & Pooling, Transition Roadmap, Real-Ship Validation, Optimiser Benchmark, Method & Assumptions.
-- **Report** (header, both portals): opens the print dialog for the active scenario's plan report; choose **Save as PDF**.
+### Regenerate results (optional)
 
-## Full pipeline: regenerate results
-
-Requires Python 3.12+.
+Requires Python 3.12+. Takes about 3 minutes.
 
 ```bash
 python3 -m venv .venv
 .venv/bin/pip install -r requirements.txt
-.venv/bin/python fleet.py          # about 3 minutes; writes frontend/src/data/results.json
-cd frontend && npm run check       # browser engine must reproduce fleet.py exactly
+.venv/bin/python fleet.py
+cd frontend && npm run check
 ```
 
-Real-ship calibration is optional: if `data/mrv/mrv_2024.xlsx` is missing, `fleet.py` skips it and the
-Real-Ship Validation page shows download instructions instead. To enable it, download the 2024 public emission
-report (Excel) from EMSA THETIS-MRV (https://mrv.emsa.europa.eu) and save it as `data/mrv/mrv_2024.xlsx`.
+Real-ship calibration is optional: put the EU MRV 2024 public emission report (from [EMSA THETIS-MRV](https://mrv.emsa.europa.eu)) at `data/mrv/mrv_2024.xlsx`. Without it, `fleet.py` skips that step.
 
-## Deploy (Render)
+### Deploy
 
-`render.yaml` defines a free static site: build `cd frontend && npm ci && npm run build`, publish `frontend/dist`.
-In the Render dashboard choose **New → Blueprint**, select this repository and apply. Every push redeploys.
-After re-running `fleet.py`, commit `frontend/src/data/results.json` so the deployed site picks up the new results.
+`render.yaml` is a Render Blueprint for a free static site. In Render choose **New → Blueprint** and select this repo. Every push redeploys. After re-running `fleet.py`, commit `frontend/src/data/results.json` so the site picks up the new results.
 
-## Method
+## Project layout
 
-**Fuel prediction.** Admiralty-law physics baseline (design fuel × (speed / design speed)³, scaled by load) multiplied
-by a gradient-boosting correction that learns the effect of weather (Beaufort), head sea, hull fouling and residual
-vessel effects. The correction's input features and hyperparameters are chosen by the same
-quantum-inspired search (15-bit genome: 8 feature bits + 7 hyperparameter bits) with objectives validation error and
-number of inputs. A split-conformal 90% interval gives the Cautious (P90) forecast. Benchmarked against pure ML and
-physics-only models, including extrapolation to speeds not seen in training. Calibrated per vessel class against
-EU MRV 2024 container ships (fitted on half, scored on the other half).
-
-**Formulation.** Per lane decision genes: vessel class (2 bits, i.e. capacity 1,000 to 4,500 TEU), cruising speed
-(3 bits, 10 to 20.5 kn), fuel (3 bits: VLSFO, LNG, Bio-LNG, B30 biofuel, grey methanol, bio-methanol, green ammonia,
-green hydrogen) and shore power (1 bit), so 72 bits for 8 lanes.
-Objectives: minimise annual cost ($M: fuel, carbon, ship charter, shore power) and well-to-wake CO2e (kt/yr).
-Weekly cargo demand is met by construction: ship count per lane is sized from demand, capacity at 85% utilisation
-and round-trip time. Constraints: vessel speed limit, maximum transit time (schedule), bunkering range, fleet size
-per class, fuel supply caps, and the GHG intensity cap. Constraint domination ranks any feasible plan above any infeasible one.
-
-**QIEA.** Each gene is a Q-bit angle θ with P(1) = sin²θ. Superposition recombination builds offspring Q-bits from two
-archive parents (agreeing bits become near-certain, disagreeing bits return to θ = π/4), a rotation gate
-(Δθ = 0.05π) pulls θ toward archive members, and a NOT gate mutates with rate 1/L. The Pareto archive (60 plans) is
-pruned by crowding distance; population 20.
-
-**Benchmark.** Hypervolume against NSGA-II and random search: 10 seeds × 6,000 evaluations on the 8-lane case, plus
-scalability at 8, 16 and 32 lanes (5 seeds, 750 evaluations per lane). QIEA reaches a much higher hypervolume early (0.608 vs 0.192 at 25% of budget), finishes close to
-NSGA-II on 8 lanes (0.675 vs 0.687) and edges it at 32 lanes (0.719 vs 0.716).
+| Path | Purpose |
+|---|---|
+| `fleet.py` | The whole Python pipeline |
+| `frontend/src/engine.js` | Browser QIEA and plan evaluator |
+| `frontend/src/pages/` | Portal pages |
+| `frontend/src/Report.jsx` | Printable plan report |
+| `frontend/engine.check.mjs` | Checks the JS engine against Python |
+| `basemap.py` | Builds the map outline from Natural Earth |
+| `render.yaml` | Deploy config |
 
 ## Limits
 
-- The fuel model is trained on synthetic voyages, then calibrated per vessel class on real EU MRV data; MRV covers EU voyages only and vessel class is inferred from cargo carried.
-- Fuel prices and emission factors are illustrative (FuelEU Annex II style); verify before quoting.
-- FuelEU caps are applied to Indian lanes as a what-if compliance scenario, not current law.
-- Roadmap years are optimised independently; fleet transition costs between years are not modelled.
-- "Quantum-inspired" means classical algorithms that borrow Q-bit representations; no quantum hardware is used.
+- The fuel model is trained on synthetic voyages, then calibrated per vessel class on real EU MRV data, which covers EU voyages only.
+- Fuel prices and emission factors are illustrative; verify them before real use.
+- FuelEU caps are applied to Indian lanes as a what-if scenario, not as current law.
+- Roadmap years are optimised independently; transition costs between years are not modelled.
+- "Quantum-inspired" means classical algorithms using Q-bit representations. No quantum hardware is used.
+
+## References
+
+- Han & Kim (2002). Quantum-inspired evolutionary algorithm for a class of combinatorial optimization. *IEEE Trans. Evolutionary Computation*, 6(6), 580–593.
+- Deb et al. (2002). A fast and elitist multiobjective genetic algorithm: NSGA-II. *IEEE Trans. Evolutionary Computation*, 6(2), 182–197.
+- Psaraftis & Kontovas (2013). Speed models for energy-efficient maritime transportation. *Transportation Research Part C*, 26, 331–351.
+- Regulation (EU) 2023/1805 (FuelEU Maritime).
+- Map data: [Natural Earth](https://www.naturalearthdata.com) (public domain).
+
+<div align="center">
+
+Built by **Team C-Suite** for Smart India Hackathon 2026
+
+</div>
