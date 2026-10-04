@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Activity, Anchor, CheckCircle2, Cpu, Fuel, Gauge, Lightbulb, MapPinned, Route, ShieldCheck, Ship, SlidersHorizontal, Sparkles, Target, Wallet } from 'lucide-react';
+import { useRef, useState } from 'react';
+import { Activity, Anchor, CheckCircle2, Cpu, Fuel, Gauge, Lightbulb, MapPinned, Pause, Play, Route, ShieldCheck, Ship, SlidersHorizontal, Sparkles, Target, Wallet } from 'lucide-react';
 import { Bar, BarChart, CartesianGrid, Legend, Line, LineChart, ReferenceLine, ResponsiveContainer, Scatter, ScatterChart, Tooltip, XAxis, YAxis } from 'recharts';
 import { R, useLanguage, useScenario } from '../context';
 import BASEMAP from '../data/basemap.json';
@@ -210,11 +210,44 @@ const lanePath = (name) => {
   return d;
 };
 
+/* A container ship sailing out along the lane and back. SVG's rotate="auto" follows the path direction, not the direction
+   of travel, so the outbound and return legs are two linked animations, each visible for half the round trip. */
+const HULL = 'M-14,-5.5 L8,-5.5 L15,0 L8,5.5 L-14,5.5 Z';
+const MapShip = ({ pathId, color, deck, dur, offset }) => {
+  const legs = [['0;1;1', 'auto', 'visible;hidden'], ['1;1;0', 'auto-reverse', 'hidden;visible']];
+  const begin = `${-offset * dur}s`;
+  return legs.map(([kp, rot, vis]) => (
+    <g key={rot} className="motion-reduce:hidden" visibility="hidden">
+      <g transform="scale(1.35)">
+        <path d={HULL} fill={deck} stroke={color} strokeWidth={2.5} strokeLinejoin="round" />
+        <rect x={-10} y={-2.5} width={5} height={5} rx={1} fill={color} />
+        <rect x={-3.5} y={-2.5} width={5} height={5} rx={1} fill={color} />
+        <rect x={3} y={-1.75} width={3} height={3.5} rx={0.8} fill={color} />
+      </g>
+      <animateMotion dur={`${dur}s`} begin={begin} repeatCount="indefinite" keyPoints={kp} keyTimes="0;0.5;1" calcMode="linear" rotate={rot}>
+        <mpath href={`#${pathId}`} />
+      </animateMotion>
+      <animate attributeName="visibility" values={vis} keyTimes="0;0.5" dur={`${dur}s`} begin={begin} repeatCount="indefinite" calcMode="discrete" />
+    </g>
+  ));
+};
+
 const LaneMap = ({ lanes, selected, onSelect }) => {
   const p = usePalette();
   const [hover, setHover] = useState(null);
+  const [paused, setPaused] = useState(false);
+  const svg = useRef(null);
+  const toggle = () => {
+    if (paused) svg.current.unpauseAnimations(); else svg.current.pauseAnimations();
+    setPaused(!paused);
+  };
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto" role="img" aria-label="Lane network map from the Arabian Gulf to the Strait of Malacca">
+    <div className="relative">
+    <button type="button" onClick={toggle} aria-pressed={paused}
+      className="motion-reduce:hidden absolute right-2 top-2 z-10 inline-flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-semibold bg-white/90 text-slate-700 border border-slate-200 hover:border-slate-400 dark:bg-slate-900/80 dark:text-slate-200 dark:border-white/[0.12]">
+      {paused ? <Play size={12} /> : <Pause size={12} />}{paused ? 'Sail ships' : 'Pause ships'}
+    </button>
+    <svg ref={svg} viewBox={`0 0 ${W} ${H}`} className="w-full h-auto" role="img" aria-label="Lane network map from the Arabian Gulf to the Strait of Malacca">
       <rect width={W} height={H} fill={p.sea} />
       <path d={LAND} fill={p.land} stroke={p.sea} strokeWidth={1.2} strokeLinejoin="round" />
       {/* stroke then refill: keeps India's outer boundary and hides internal seams between merged J&K/Ladakh parts */}
@@ -238,9 +271,10 @@ const LaneMap = ({ lanes, selected, onSelect }) => {
             <path id={id} d={lanePath(l.lane)} fill="none" stroke={fuelColor(p, l.fuel)} strokeWidth={on ? w + 4 : w} strokeLinecap="round"
               opacity={selected && !on ? p.dim : 1} />
             <path d={lanePath(l.lane)} fill="none" stroke="transparent" strokeWidth={30} />
-            <circle r={8} fill={p.surface} stroke={fuelColor(p, l.fuel)} strokeWidth={3.5} className="motion-reduce:hidden">
-              <animateMotion dur={`${Math.max(2.5, l.transit_days * 2.2)}s`} repeatCount="indefinite" keyPoints="0;1;0" keyTimes="0;0.5;1" calcMode="linear"><mpath href={`#${id}`} /></animateMotion>
-            </circle>
+            {Array.from({ length: Math.min(l.ships, 4) }, (_, k) => (
+              <MapShip key={k} pathId={id} color={fuelColor(p, l.fuel)} deck={p.surface}
+                dur={Math.max(5, l.transit_days * 4.4)} offset={k / Math.min(l.ships, 4)} />
+            ))}
           </g>
         );
       })}
@@ -254,6 +288,7 @@ const LaneMap = ({ lanes, selected, onSelect }) => {
         );
       })}
     </svg>
+    </div>
   );
 };
 
