@@ -1,14 +1,18 @@
-import { useEffect, useRef, useState } from 'react';
+import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { Atom, BadgeCheck, BookOpen, CalendarRange, CloudLightning, Coins, Compass, FileDown, FileSpreadsheet, Gauge, Globe, LayoutDashboard, LogOut, Moon, Route, ShieldCheck, Ship, SlidersHorizontal, Sun, Zap } from 'lucide-react';
 import { PORTALS, Providers, useAuth, useLanguage, useScenario, useTheme } from './context';
-import { fmt } from './ui';
+import { fmt } from './format';
 import { Report } from './Report';
 import { Landing } from './pages/Landing';
-import { FleetDashboard, LaneNetwork, Planner, Prediction } from './pages/fleet';
-import { Benchmark, ComplianceDashboard, Method } from './pages/compliance';
-import { Disruption, LiveOptimizer } from './pages/live';
-import { FuelEU, Roadmap, Validation } from './pages/strategy';
-import { FleetUpload } from './pages/upload';
+// Portal pages (and the chart library they use) load on first visit, so the landing page stays light.
+const page = (load, name) => lazy(() => load().then((m) => ({ default: m[name] })));
+const fleet = () => import('./pages/fleet'), compliance = () => import('./pages/compliance');
+const live = () => import('./pages/live'), strategy = () => import('./pages/strategy');
+const FleetDashboard = page(fleet, 'FleetDashboard'), LaneNetwork = page(fleet, 'LaneNetwork'), Planner = page(fleet, 'Planner'), Prediction = page(fleet, 'Prediction');
+const Benchmark = page(compliance, 'Benchmark'), ComplianceDashboard = page(compliance, 'ComplianceDashboard'), Method = page(compliance, 'Method');
+const Disruption = page(live, 'Disruption'), LiveOptimizer = page(live, 'LiveOptimizer');
+const FuelEU = page(strategy, 'FuelEU'), Roadmap = page(strategy, 'Roadmap'), Validation = page(strategy, 'Validation');
+const FleetUpload = page(() => import('./pages/upload'), 'FleetUpload');
 
 const PAGES = {
   [PORTALS.FLEET]: [
@@ -178,6 +182,10 @@ function Main() {
     if (portal && !PAGES[portal].some((p) => p.id === active)) setActive(PAGES[portal][0].id);
   }, [portal, active]);
   useEffect(() => { window.scrollTo(0, 0); }, [active]);
+  useEffect(() => { // warm the page chunks while the visitor reads the landing page
+    const id = setTimeout(() => { fleet(); compliance(); }, 1500);
+    return () => clearTimeout(id);
+  }, []);
 
   if (!portal) return <Landing />;
   const { Page } = pages.find((p) => p.id === active) || pages[0];
@@ -190,7 +198,9 @@ function Main() {
       <div className="flex-1 flex min-w-0">
         <Sidebar pages={pages} active={active} onChange={setActive} />
         <main className="flex-1 p-4 sm:p-6 max-w-7xl w-full mx-auto min-w-0">
-          <Page onNavigate={setActive} />
+          <Suspense fallback={<div role="status" className="py-24 text-center text-sm text-slate-500 dark:text-slate-400">Loading…</div>}>
+            <Page onNavigate={setActive} />
+          </Suspense>
         </main>
       </div>
     </div>

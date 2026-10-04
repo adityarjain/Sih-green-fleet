@@ -1,7 +1,7 @@
 import { ArrowRight, Atom, CheckCircle2, Compass, Gauge, Leaf, ShieldCheck, Fuel } from 'lucide-react';
 import { PORTALS, R, useAuth, useLanguage } from '../context';
 import { Brand, Toggles } from '../App';
-import { fmt, pct } from '../ui';
+import { fmt, pct } from '../format';
 
 const base = R.scenarios['100|2030|0.71|0'];
 const B = R.benchmark.algos;

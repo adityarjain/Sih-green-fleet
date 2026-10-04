@@ -1,5 +1,5 @@
 import { R, useScenario } from './context';
-import { fmt, pct } from './ui';
+import { fmt, pct } from './format';
 
 // Printable plan report: hidden on screen, the only thing on the page when printing (Save as PDF).
 const GRID = { '0.71': 'India grid (0.71 kg CO2e/kWh)', '0.05': 'Renewable PPA (0.05 kg CO2e/kWh)' };

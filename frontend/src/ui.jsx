@@ -16,8 +16,8 @@ const FUEL_INDEX = Object.fromEntries(R.fuels.map((f, i) => [f.name, i]));
 export const fuelColor = (p, name) => (name === 'Bio-LNG' ? p.bioLng : name in FUEL_INDEX ? p.s[FUEL_INDEX[name]] : p.ref);
 export const fuelOrder = (a, b) => (FUEL_INDEX[a] ?? 99) - (FUEL_INDEX[b] ?? 99);
 
-export const fmt = (x, d = 1) => Number(x).toLocaleString('en-IN', { minimumFractionDigits: d, maximumFractionDigits: d });
-export const pct = (a, b) => ((a - b) / b) * 100;
+import { fmt, pct } from './format';
+export { fmt, pct };
 
 /* ---------- recharts styling ---------- */
 export const axis = (p) => ({ tick: { fill: p.muted, fontSize: 11 }, stroke: p.axis, tickLine: false });

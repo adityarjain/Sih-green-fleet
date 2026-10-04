@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { AlertTriangle, CheckCircle2, Download, FileSpreadsheet, Play, RotateCcw, Sparkles, Upload } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, Download, FileSpreadsheet, Lock, Play, RotateCcw, Sparkles, Upload } from 'lucide-react';
 import { R, useLanguage, useScenario } from '../context';
 import { createQiea, evaluate, recommend } from '../engine';
 import { applyEdits, fleetTemplate, laneTemplate, readTable } from '../fleetdata';
@@ -84,6 +84,9 @@ export const FleetUpload = ({ onNavigate }) => {
             <div><span className="font-mono">fleet:</span> vessel, teu, available, daily_rate_usd, fuel_tpd</div>
             <div><span className="font-mono">lanes:</span> lane, teu_week, distance_nm, max_transit_days</div>
           </div>
+          <p className="mt-3 inline-flex items-center gap-1.5 text-[11px] font-medium text-emerald-700 dark:text-emerald-400">
+            <Lock size={12} aria-hidden />Your files never leave your browser: reading and optimising both run on this device.
+          </p>
           {files.length > 0 && (
             <div className="mt-3 flex flex-wrap gap-2">
               {files.map((f) => (
