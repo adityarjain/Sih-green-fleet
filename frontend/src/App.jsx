@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Atom, BadgeCheck, BookOpen, CalendarRange, CloudLightning, Coins, Compass, FileDown, Gauge, Globe, LayoutDashboard, LogOut, Moon, Route, ShieldCheck, Ship, SlidersHorizontal, Sun, Zap } from 'lucide-react';
+import { Atom, BadgeCheck, BookOpen, CalendarRange, CloudLightning, Coins, Compass, FileDown, FileSpreadsheet, Gauge, Globe, LayoutDashboard, LogOut, Moon, Route, ShieldCheck, Ship, SlidersHorizontal, Sun, Zap } from 'lucide-react';
 import { PORTALS, Providers, useAuth, useLanguage, useScenario, useTheme } from './context';
 import { fmt } from './ui';
 import { Report } from './Report';
@@ -8,6 +8,7 @@ import { FleetDashboard, LaneNetwork, Planner, Prediction } from './pages/fleet'
 import { Benchmark, ComplianceDashboard, Method } from './pages/compliance';
 import { Disruption, LiveOptimizer } from './pages/live';
 import { FuelEU, Roadmap, Validation } from './pages/strategy';
+import { FleetUpload } from './pages/upload';
 
 const PAGES = {
   [PORTALS.FLEET]: [
@@ -15,6 +16,7 @@ const PAGES = {
     { id: 'planner', key: 'scenarioPlanner', label: 'Scenario Planner', icon: SlidersHorizontal, Page: Planner, badge: '36' },
     { id: 'live', key: 'liveOptimizer', label: 'Live Optimiser', icon: Zap, Page: LiveOptimizer, badge: 'LIVE' },
     { id: 'disruption', key: 'disruptionReplanning', label: 'Disruption Replanning', icon: CloudLightning, Page: Disruption },
+    { id: 'upload', key: 'fleetUpload', label: 'Your Fleet Data', icon: FileSpreadsheet, Page: FleetUpload, badge: 'CSV' },
     { id: 'lanes', key: 'laneNetwork', label: 'Lane Network', icon: Route, Page: LaneNetwork, badge: '8' },
     { id: 'prediction', key: 'fuelPrediction', label: 'Fuel Prediction', icon: Gauge, Page: Prediction },
   ],

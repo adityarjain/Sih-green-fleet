@@ -3,7 +3,7 @@ import { fmt, pct } from './ui';
 
 // Printable plan report: hidden on screen, the only thing on the page when printing (Save as PDF).
 const GRID = { '0.71': 'India grid (0.71 kg CO2e/kWh)', '0.05': 'Renewable PPA (0.05 kg CO2e/kWh)' };
-const PICK = { cheapest: 'Cheapest', balanced: 'Balanced', greenest: 'Greenest' };
+const PICK = { cheapest: 'Cheapest', balanced: 'Balanced', greenest: 'Greenest', leanest: 'Fuel-saver' };
 
 const H = ({ children }) => <h2 className="text-[13px] font-bold uppercase tracking-wider border-b border-slate-400 pb-1 mt-6 mb-2 break-after-avoid">{children}</h2>;
 const Table = ({ head, rows, right = [] }) => (
@@ -44,7 +44,7 @@ export const Report = () => {
         ['GHG intensity cap', cap ? `FuelEU ${s.cap}: ${cap} g CO2e/MJ` : 'None'],
         ['Shore power source', GRID[s.grid]],
         ['Fuel forecast', s.robust === '1' ? 'Cautious: planned against the P90 fuel prediction' : 'Expected fuel prediction'],
-        ['Recommendation', `${PICK[s.pick]} point of the cost vs emissions Pareto front (${sc.front.length} non-dominated plans)`],
+        ['Recommendation', `${PICK[s.pick]} point of the cost, CO2e and fuel Pareto front (${sc.front.length} non-dominated plans)`],
       ]} />
 
       <H>Headline results vs conventional operation</H>
@@ -66,8 +66,8 @@ export const Report = () => {
         rows={plan.lanes.map((l) => [l.lane, l.vessel, l.ships, fmt(l.speed), fmt(l.transit_days, 2), l.fuel, l.shore_power ? 'Connected' : 'Aux engines', fmt(l.co2_kt)])} />
 
       <H>Alternative plans on the same Pareto front</H>
-      <Table head={['Plan', 'Cost ($M/yr)', 'CO2e (kt/yr)', 'Intensity (g/MJ)']} right={[1, 2, 3]}
-        rows={Object.entries(sc.picks).map(([k, p]) => [PICK[k] + (k === s.pick ? ' (selected)' : ''), fmt(p.cost_musd), fmt(p.co2_kt, 0), fmt(p.intensity)])} />
+      <Table head={['Plan', 'Cost ($M/yr)', 'CO2e (kt/yr)', 'Fuel (kt/yr)', 'Intensity (g/MJ)']} right={[1, 2, 3, 4]}
+        rows={Object.entries(sc.picks).map(([k, p]) => [PICK[k] + (k === s.pick ? ' (selected)' : ''), fmt(p.cost_musd), fmt(p.co2_kt, 0), fmt(p.fuel_kt_vlsfo_eq, 0), fmt(p.intensity)])} />
 
       <H>Model evidence</H>
       <Table head={['Check', 'Result']} rows={[

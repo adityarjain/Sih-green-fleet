@@ -37,6 +37,8 @@ Frontend structure:
 - `context.jsx`: theme, language, portal sign-in and scenario state. Storage values are raw strings (`sessionStorage gf_portal` = `FLEET` or `COMPLIANCE`; `localStorage gf_theme`, `gf_language`), not JSON.
 - `ui.jsx`: shared components plus light/dark chart palettes (`usePalette`, `fuelColor`, `p.ref` for comparison marks).
 - `i18n/translations.js`: `t(key, fallback)`; `en` holds only overrides, `hi` the Hindi strings.
+- `fleetdata.js` + `pages/upload.jsx`: CSV fleet/lane upload. Edits only existing vessel classes (matched by TEU) and the 8 lanes (matched by name), because fuel tables are precomputed per lane × class × speed; design-fuel edits scale those tables. Tested in `engine.check.mjs`.
+- `explain.js`: per-lane counterfactuals for the Lane Network "Why this plan" panel (swap one decision, re-evaluate with `engine.evaluate`, report broken constraints or objective deltas). Tested in `engine.check.mjs`.
 - Lane map basemap `src/data/basemap.json` is generated once by `basemap.py` from Natural Earth GeoJSON.
 
 ## Working conventions

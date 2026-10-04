@@ -1,5 +1,5 @@
 export const TRANSLATIONS = {
-  en: {},
+  en: { leanest: 'Fuel-saver' },
   hi: {
     systemTitle: 'हरित बेड़ा अनुकूलन प्रणाली',
     systemSubtitle: 'क्वांटम-प्रेरित ईंधन पूर्वानुमान एवं बेड़ा योजना',
@@ -23,6 +23,7 @@ export const TRANSLATIONS = {
     methodAssumptions: 'पद्धति एवं मान्यताएँ',
     liveOptimizer: 'लाइव अनुकूलक',
     disruptionReplanning: 'व्यवधान पुनर्योजना',
+    fleetUpload: 'आपका बेड़ा डेटा',
     fueleuPooling: 'FuelEU दंड एवं पूलिंग',
     transitionRoadmap: 'संक्रमण रोडमैप',
     realShipValidation: 'वास्तविक जहाज़ सत्यापन',
@@ -41,6 +42,7 @@ export const TRANSLATIONS = {
     cheapest: 'सबसे सस्ता',
     balanced: 'संतुलित',
     greenest: 'सबसे हरित',
+    leanest: 'सबसे कम ईंधन',
     meetsCap: 'सीमा के भीतर',
     breachesCap: 'सीमा का उल्लंघन',
     noCap: 'कोई सीमा नहीं',

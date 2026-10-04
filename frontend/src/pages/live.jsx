@@ -5,7 +5,7 @@ import { R, useLanguage, useScenario, useTheme } from '../context';
 import { bitsOf, cloneProblem, createQiea, evaluate, recommend } from '../engine';
 import { axis, CapBadge, dot, fmt, FuelChip, legend, PageHeader, Panel, pct, ScenarioStrip, Seg, Stat, tip, usePalette } from '../ui';
 
-const PICKS = ['cheapest', 'balanced', 'greenest'];
+const PICKS = ['cheapest', 'balanced', 'greenest', 'leanest'];
 const VESSEL = R.vessels.map((v) => v.name);
 const FUEL = R.fuels.map((f) => f.name);
 const RAMP = ['#cde2fb', '#b7d3f6', '#9ec5f4', '#86b6ef', '#6da7ec', '#5598e7', '#3987e5', '#2a78d6', '#256abf', '#1c5cab', '#184f95', '#104281', '#0d366b'];
@@ -102,7 +102,7 @@ const LiveFront = ({ run, reference, height = 300 }) => {
         <Tooltip {...tip(p)} cursor={{ strokeDasharray: '3 3', stroke: p.axis }} formatter={(v, n) => (n === 'Annual cost' ? [`$${fmt(v)}M`, n] : [`${fmt(v, 0)} kt`, n])} />
         <Legend {...legend(p)} />
         {reference && <Scatter name={reference.name} data={reference.data} fill={p.ref} shape={dot(3, p.ref)} isAnimationActive={false} />}
-        <Scatter name="Live front" data={live} fill={p.s[0]} line={{ stroke: p.s[0], strokeWidth: 2 }} shape={dot(3.5, p.s[0], p.surface)} isAnimationActive={false} />
+        <Scatter name="Live front" data={live} fill={p.s[0]} shape={dot(3.5, p.s[0], p.surface)} isAnimationActive={false} />
       </ScatterChart>
     </ResponsiveContainer>
   );

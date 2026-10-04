@@ -3,12 +3,14 @@ import { Activity, Anchor, CheckCircle2, Cpu, Fuel, Gauge, Lightbulb, MapPinned,
 import { Bar, BarChart, CartesianGrid, Legend, Line, LineChart, ReferenceLine, ResponsiveContainer, Scatter, ScatterChart, Tooltip, XAxis, YAxis } from 'recharts';
 import { R, useLanguage, useScenario } from '../context';
 import BASEMAP from '../data/basemap.json';
+import { bitsOf } from '../engine';
+import { consequence, whyLane } from '../explain';
 import {
   axis, CapBadge, dot, fmt, fuelColor, fuelOrder, FuelChip, FuelMixChart, grid, LaneTable, legend, LinkButton, PageHeader, Panel,
   pct, PlanKpis, PrimaryButton, ScenarioControls, ScenarioStrip, Stat, tip, usePalette,
 } from '../ui';
 
-const PICKS = ['cheapest', 'balanced', 'greenest'];
+const PICKS = ['cheapest', 'balanced', 'greenest', 'leanest'];
 const title = (k) => k[0].toUpperCase() + k.slice(1);
 const leadFuel = (plan) => Object.entries(plan.fuel_mix_pj).sort((a, b) => b[1] - a[1])[0];
 const totalShips = (plan) => plan.lanes.reduce((a, l) => a + l.ships, 0);
@@ -74,7 +76,7 @@ const ParetoChart = () => {
         <Tooltip {...tip(p)} cursor={{ strokeDasharray: '3 3', stroke: p.axis }}
           formatter={(v, n) => (n === 'Annual cost' ? [`$${fmt(v)}M`, n] : [`${fmt(v, 0)} kt/yr`, n])} />
         <Legend {...legend(p)} />
-        <Scatter name="Pareto front" data={front} fill={p.s[0]} line={{ stroke: p.s[0], strokeWidth: 2 }} shape={dot(3, p.s[0])} />
+        <Scatter name="Pareto front" data={front} fill={p.s[0]} shape={dot(3, p.s[0])} />
         <Scatter name="Conventional plan" data={[{ x: conv.cost_musd, y: conv.co2_kt }]} fill={p.muted}
           shape={(pr) => <rect x={pr.cx - 6} y={pr.cy - 6} width={12} height={12} transform={`rotate(45 ${pr.cx} ${pr.cy})`} fill={p.muted} stroke={p.surface} strokeWidth={2} />} />
         <Scatter name="Recommended plans" data={picks} fill={p.ink}
@@ -106,7 +108,7 @@ const PickCards = () => {
               {on ? <CheckCircle2 size={15} className="text-macblue-500" /> : <CapBadge ok={ok}>{fmt(pl.intensity)} g/MJ</CapBadge>}
             </div>
             <div className="grid grid-cols-3 gap-2 mt-2">
-              {[['Cost', `$${fmt(pl.cost_musd)}M`], ['CO2e', `${fmt(pl.co2_kt, 0)} kt`], ['Energy', `${fmt(pl.energy_pj, 2)} PJ`]].map(([a, b]) => (
+              {[['Cost', `$${fmt(pl.cost_musd)}M`], ['CO2e', `${fmt(pl.co2_kt, 0)} kt`], ['Fuel', `${fmt(pl.fuel_kt_vlsfo_eq, 0)} kt`]].map(([a, b]) => (
                 <div key={a}><div className="text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400">{a}</div><div className="font-mono text-xs font-semibold text-slate-900 dark:text-white">{b}</div></div>
               ))}
             </div>
@@ -152,7 +154,7 @@ export const Planner = () => {
       <Panel icon={SlidersHorizontal} title="Scenario settings"><ScenarioControls /></Panel>
       <PlanKpis />
       <div className="grid lg:grid-cols-5 gap-5">
-        <Panel className="lg:col-span-3" icon={Target} title="Cost vs emissions trade-off" note="Every point is a feasible fleet plan; none beats another on both axes. Click a ringed point to select it.">
+        <Panel className="lg:col-span-3" icon={Target} title="Cost vs emissions trade-off" note="Every point is a feasible fleet plan that no other plan beats on cost, CO2e and fuel together, shown here on cost and CO2e. Click a ringed point to select it.">
           <ParetoChart />
         </Panel>
         <Panel className="lg:col-span-2" icon={Sparkles} title="Recommended plans"><PickCards /></Panel>
@@ -255,6 +257,38 @@ const LaneMap = ({ lanes, selected, onSelect }) => {
   );
 };
 
+const LaneWhy = ({ lane }) => {
+  const { s, plan, cap } = useScenario();
+  const i = R.problem.lanes.indexOf(lane);
+  const w = whyLane(bitsOf(plan.genome), R.problem, { carbon: +s.carbon, cap, grid: +s.grid, robust: s.robust === '1' }, i);
+  const P = R.problem, l = plan.lanes[i];
+  const byCost = (a, b) => (a.broken.length - b.broken.length) || (a.dF[0] - b.dF[0]);
+  const groups = [
+    ['Fuel', l.fuel, w.fuel.sort(byCost).map((o) => [R.fuels[o.change.f].name, o])],
+    ['Speed', `${fmt(l.speed)} kn`, w.speed.map((o) => [`${fmt(P.speeds[o.change.s])} kn`, o])],
+    ['Vessel', l.vessel, w.vessel.map((o) => [R.vessels[o.change.v].name, o])],
+    ['Shore power', l.shore_power ? 'Connected' : 'Aux engines', w.shore.map((o) => [o.change.sh ? 'Connect shore power' : 'Run aux engines', o])],
+  ];
+  return (
+    <div className="grid sm:grid-cols-2 xl:grid-cols-4 gap-4">
+      {groups.map(([title, now, rows]) => (
+        <div key={title}>
+          <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">{title}</div>
+          <div className="text-sm font-semibold text-slate-900 dark:text-white mb-2">Chosen: {now}</div>
+          <ul className="space-y-1.5">
+            {rows.map(([name, o]) => (
+              <li key={name} className="text-xs leading-snug text-slate-600 dark:text-slate-400 flex gap-2">
+                <span className={`mt-1.5 h-1.5 w-1.5 rounded-full shrink-0 ${o.broken.length ? 'bg-rose-500' : 'bg-slate-400'}`} aria-hidden />
+                <span><span className="font-medium text-slate-900 dark:text-white">{name}</span> {consequence(o, P, i)}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
+    </div>
+  );
+};
+
 export const LaneNetwork = () => {
   const { plan, conv } = useScenario();
   const { t } = useLanguage();
@@ -299,6 +333,10 @@ export const LaneNetwork = () => {
           </div>
         </Panel>
       </div>
+      <Panel icon={Lightbulb} title={`Why this plan on ${sel}`}
+        note="Each line changes one decision on this lane, re-runs the fleet model and reports what breaks (red) or what you would trade.">
+        <LaneWhy lane={sel} />
+      </Panel>
       <Panel icon={Route} title="All lanes" note="Click a row or a route on the map to inspect it." pad={false}>
         <LaneTable lanes={plan.lanes} onSelect={setSel} selected={sel} />
       </Panel>

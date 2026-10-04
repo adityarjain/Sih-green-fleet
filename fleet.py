@@ -347,7 +347,8 @@ def lanes_eval(X, P, sc):
 def evaluate(X, P, sc):
     d = lanes_eval(X, P, sc)
     total = sum(d["cost"].values()).sum(1)
-    return np.column_stack([total / 1e6, d["co2"].sum(1) / 1e3]), d["viol"]  # $M/yr, kt CO2e/yr
+    fuel_kt = d["fuel_gj"].sum(1) / LHV / 1e3
+    return np.column_stack([total / 1e6, d["co2"].sum(1) / 1e3, fuel_kt]), d["viol"]  # $M/yr, kt CO2e/yr, kt VLSFO-eq/yr
 
 
 # ---------------------------------------------------------------- multi-objective machinery
@@ -411,12 +412,13 @@ def qiea(P, sc, budget, seed, N=20, A=60, dtheta=0.05 * np.pi, fn=None):
     rng, fn = np.random.default_rng(seed), fn or evaluate
     L, lo = P["L"], 0.02 * np.pi
     th = np.full((N, L), np.pi / 4)
-    AX, AF, AV = np.empty((0, L), np.int8), np.empty((0, 2)), np.empty(0)
+    AX, AF, AV = np.empty((0, L), np.int8), None, np.empty(0)
     evals, hist = 0, []
     while evals + N <= budget:
         X = (rng.random(th.shape) < np.sin(th) ** 2).astype(np.int8)
         F, V = fn(X, P, sc)
         evals += N
+        AF = F[:0] if AF is None else AF
         AX, AF, AV = archive(np.vstack([AX, X]), np.vstack([AF, F]), np.concatenate([AV, V]), A)
         cd = crowding(eff(AF, AV))
         a, b, c, d = rng.integers(0, len(AF), (4, N))
@@ -459,12 +461,13 @@ def nsga2(P, sc, budget, seed, N=100):
 
 def random_search(P, sc, budget, seed, N=100, fn=None):
     rng, fn = np.random.default_rng(seed), fn or evaluate
-    AX, AF, AV = np.empty((0, P["L"]), np.int8), np.empty((0, 2)), np.empty(0)
+    AX, AF, AV = np.empty((0, P["L"]), np.int8), None, np.empty(0)
     evals, hist = 0, []
     while evals + N <= budget:
         X = rng.integers(0, 2, (N, P["L"])).astype(np.int8)
         F, V = fn(X, P, sc)
         evals += N
+        AF = F[:0] if AF is None else AF
         AX, AF, AV = archive(np.vstack([AX, X]), np.vstack([AF, F]), np.concatenate([AV, V]), 100)
         hist.append((evals, feasible(AF, AV)))
     return AX, AF, AV, hist
@@ -482,6 +485,14 @@ def hv2d(F, ref=(1.1, 1.1)):
     return hv
 
 
+def hv3d(F, ref=(1.1, 1.1, 1.1)):
+    """Exact hypervolume by slicing along the third objective: sum of 2-D areas times slab depth."""
+    F = F[np.all(F < ref, 1)]
+    F = F[np.argsort(F[:, 2])]
+    zs = np.append(F[:, 2], ref[2])
+    return sum(hv2d(F[:k + 1, :2], ref[:2]) * (zs[k + 1] - zs[k]) for k in range(len(F)))
+
+
 # ---------------------------------------------------------------- experiments
 def benchmark(P, sc, budget, seeds):
     runs = {name: [] for name in ALGOS}
@@ -490,14 +501,14 @@ def benchmark(P, sc, budget, seeds):
             t0 = time.perf_counter()
             *_, hist = algo(P, sc, budget, sd)
             runs[name].append((time.perf_counter() - t0, hist))
-    allF = np.vstack([h[-1][1] for rs in runs.values() for _, h in rs if len(h[-1][1])] or [np.zeros((1, 2))])
+    allF = np.vstack([h[-1][1] for rs in runs.values() for _, h in rs if len(h[-1][1])] or [np.zeros((1, 3))])
     ref_front = allF[nd_sort(allF) == 0]
     lo, hi = ref_front.min(0), ref_front.max(0)
     norm = lambda F: (F - lo) / np.where(hi > lo, hi - lo, 1)
     grid = np.linspace(budget / 30, budget, 30)
     out = {}
     for name, rs in runs.items():
-        curves = np.array([[hv2d(norm(next((f for e, f in reversed(h) if e <= g), np.empty((0, 2))))) for g in grid]
+        curves = np.array([[hv3d(norm(next((f for e, f in reversed(h) if e <= g), np.empty((0, 3))))) for g in grid]
                            for _, h in rs])
         final = curves[:, -1]
         best = int(np.argmax(final))
@@ -568,8 +579,8 @@ def scenarios(P, budget):
                     o = np.argsort(F[:, 0])
                     X, F = X[o], F[o]
                     n = (F - F.min(0)) / np.where(np.ptp(F, 0) > 0, np.ptp(F, 0), 1)
-                    picks = {"cheapest": 0, "balanced": int(np.argmin(np.hypot(n[:, 0], n[:, 1]))),
-                             "greenest": int(np.argmin(F[:, 1]))}
+                    picks = {"cheapest": 0, "balanced": int(np.argmin(np.linalg.norm(n, axis=1))),
+                             "greenest": int(np.argmin(F[:, 1])), "leanest": int(np.argmin(F[:, 2]))}
                     out[key] = {"feasible": True, "front": np.round(F, 3).tolist(),
                                 "picks": {k: {"i": i, **plan_json(X[i], P, sc)} for k, i in picks.items()},
                                 "conventional": plan_json(conv, P, sc)}
@@ -606,6 +617,7 @@ def selfcheck(P):
     mask, params = decode_model(np.ones(15, np.int8))
     assert mask.all() and params == dict(n_estimators=500, max_depth=5, learning_rate=0.2, subsample=1.0)
     assert hv2d(np.array([[0, 1], [1, 0]]), (2, 2)) == 3
+    assert hv3d(np.array([[0, 0, 1], [1, 1, 0]]), (2, 2, 2)) == 4 + 1 * 1 * 2 - 1  # union of a 2x2x1 and a 1x1x2 box
     assert nd_sort(np.array([[1, 1], [2, 2], [1, 2]])).tolist() == [0, 2, 1]
     x = np.tile(encode(3, 5, 7, 1), P["nl"])
     assert decode(x[None], P["nl"])[2].tolist() == [[7] * P["nl"]]

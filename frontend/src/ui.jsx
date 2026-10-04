@@ -123,7 +123,7 @@ const CONTROLS = [
   ['cap', 'ghgCap', 'GHG intensity cap', [['none', 'None'], ['2030', 'FuelEU 2030'], ['2035', 'FuelEU 2035']]],
   ['grid', 'shoreSource', 'Shore power source', [['0.71', 'India grid'], ['0.05', 'Renewable PPA']]],
   ['robust', 'fuelForecast', 'Fuel forecast', [['0', 'Expected'], ['1', 'Cautious (P90)']]],
-  ['pick', 'recommend', 'Recommend', [['cheapest', 'Cheapest'], ['balanced', 'Balanced'], ['greenest', 'Greenest']]],
+  ['pick', 'recommend', 'Recommend', [['cheapest', 'Cheapest'], ['balanced', 'Balanced'], ['greenest', 'Greenest'], ['leanest', 'Fuel-saver']]],
 ];
 const label = (k, v) => CONTROLS.find((c) => c[0] === k)[3].find((o) => o[0] === v)[1];
 

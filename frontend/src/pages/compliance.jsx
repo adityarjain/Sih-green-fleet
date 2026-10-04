@@ -110,6 +110,7 @@ export const Benchmark = () => {
   const algos = Object.keys(B.algos);
   const QI = B.algos['QIEA (quantum-inspired)'], NS = B.algos['NSGA-II'];
   const q = B.grid.findLastIndex((g) => g <= B.budget / 4);
+  const firstHit = (o) => B.grid[o.curve.findIndex((c) => c > 0)];
   const sizes = Object.keys(R.scalability);
   const big = sizes[sizes.length - 1];
   const conv = B.grid.map((g, i) => ({ evals: g, ...Object.fromEntries(algos.map((a) => [a, B.algos[a].curve[i]])) }));
@@ -120,7 +121,7 @@ export const Benchmark = () => {
         subtitle={`Quantum-inspired EA vs NSGA-II vs random search: 8-lane case, $100/t carbon, FuelEU 2030 cap, ${B.seeds} seeds, ${B.budget.toLocaleString()} evaluations each`} />
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
         <Stat label="HV at 25% budget" value={fmt(QI.curve[q], 3)} icon={Timer} tone="text-macblue-500"
-          sub={<>NSGA-II <span className="font-mono">{fmt(NS.curve[q], 3)}</span> · {fmt(QI.curve[q] / NS.curve[q])}x faster start</>} />
+          sub={<>NSGA-II <span className="font-mono">{fmt(NS.curve[q], 3)}</span> · on the front after {firstHit(QI).toLocaleString()} vs {firstHit(NS).toLocaleString()} evals</>} />
         <Stat label="Final HV · 8 lanes" value={fmt(QI.hv_mean, 3)} sub={<>NSGA-II <span className="font-mono">{fmt(NS.hv_mean, 3)}</span> (±{fmt(NS.hv_std, 3)})</>} icon={Target} />
         <Stat label={`Final HV · ${big} lanes`} value={fmt(R.scalability[big]['QIEA (quantum-inspired)'].hv_mean, 3)} icon={Network} tone="text-emerald-600 dark:text-emerald-400"
           sub={<>NSGA-II <span className="font-mono">{fmt(R.scalability[big]['NSGA-II'].hv_mean, 3)}</span></>} />
@@ -240,7 +241,7 @@ export const Method = () => {
             </Step>
             <Down />
             <Step n={4} icon={Atom} title="Quantum-inspired search" tone="bg-blue-50/90 border-blue-200 text-blue-950 dark:bg-blue-950/30 dark:border-blue-800/60 dark:text-blue-100">
-              Each decision bit is a Q-bit angle. Superposition recombination prepares Q-bits from two archive parents, a rotation gate biases them, a NOT gate keeps diversity.
+              Each decision bit is a Q-bit angle. Superposition recombination prepares Q-bits from two archive parents, a rotation gate biases them, a NOT gate keeps diversity. Three objectives are minimised together: annual cost, well-to-wake CO2e and fuel burned.
             </Step>
             <Down />
             <div className="w-full max-w-xl p-4 rounded-xl bg-amber-50/90 dark:bg-amber-950/30 border border-amber-300 dark:border-amber-800/60 text-center space-y-2.5">
@@ -258,7 +259,7 @@ export const Method = () => {
             <Down />
             <div className="w-full max-w-xl p-4 rounded-xl bg-emerald-50/80 dark:bg-emerald-950/30 border-2 border-dashed border-emerald-400 dark:border-emerald-700 text-center">
               <div className="font-extrabold text-emerald-950 dark:text-emerald-200 text-xs uppercase flex items-center justify-center gap-1.5"><Sparkles size={14} />6. Pareto front → recommendation</div>
-              <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-1">Cheapest, balanced (knee point) and greenest plans, each with a plain-language explanation</p>
+              <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-1">Cheapest, balanced (knee point), greenest and fuel-saver plans, each with a plain-language explanation</p>
             </div>
           </div>
         </Panel>

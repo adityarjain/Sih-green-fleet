@@ -5,14 +5,14 @@ import { fmt, pct } from '../ui';
 
 const base = R.scenarios['100|2030|0.71|0'];
 const B = R.benchmark.algos;
-const q = R.benchmark.grid.findLastIndex((g) => g <= R.benchmark.budget / 4);
+const firstHit = (a) => R.benchmark.grid[B[a].curve.findIndex((c) => c > 0)];
 const HEADLINES = [
   { icon: Fuel, value: `${fmt(-pct(base.picks.balanced.energy_pj, base.conventional.energy_pj), 0)}%`, label: 'less fuel energy than design-speed VLSFO operation' },
   { icon: Leaf, value: `${fmt(-pct(base.picks.balanced.co2_kt, base.conventional.co2_kt), 0)}%`, label: 'lower well-to-wake CO2e in the balanced plan' },
   R.mrv
     ? { icon: Gauge, value: `${fmt(R.mrv.calibrated.mape)}%`, label: `fuel error on ${Math.floor(R.mrv.used / 2)} held-out real EU container ships (MRV 2024)` }
     : { icon: Gauge, value: `${fmt(R.prediction.extrap['QI-tuned hybrid'].mape)}%`, label: `fuel error on unseen speeds (pure ML: ${fmt(R.prediction.extrap['Pure ML (GBM)'].mape)}%)` },
-  { icon: Atom, value: `${fmt(B['QIEA (quantum-inspired)'].curve[q] / B['NSGA-II'].curve[q])}x`, label: 'better early search than NSGA-II at equal budget' },
+  { icon: Atom, value: `${fmt(firstHit('NSGA-II') / firstHit('QIEA (quantum-inspired)'))}x`, label: 'faster than NSGA-II to reach the best-front region' },
 ];
 
 const PortalCard = ({ n, icon: Icon, role, roleTone, title, desc, detailLabel, detail, features, cta, onClick }) => (

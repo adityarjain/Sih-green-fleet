@@ -37,18 +37,18 @@ export function evaluate(g, P, sc, detail = false) {
   const intensity = (co2Tot * 1e3) / energy;
   if (sc.cap) vb.cap = Math.max(0, intensity - sc.cap) / sc.cap;
   const V = vb.speed + vb.transit + vb.range + vb.fleet + vb.supply + vb.cap;
-  const F = [cost / 1e6, co2Tot / 1e3];
+  const F = [cost / 1e6, co2Tot / 1e3, fuelBy.reduce((a, b) => a + b, 0) / P.lhv / 1e3];
   return detail ? { F, V, intensity, energy_pj: energy / 1e6, lanes, shipsBy, violations: vb } : { F, V };
 }
 
 /* ---------- multi-objective helpers (same rules as fleet.py) ---------- */
-const eff = (o) => (o.V > 0 ? [1e9 + o.V, 1e9 + o.V] : o.F);
-const dominates = (a, b) => a[0] <= b[0] && a[1] <= b[1] && (a[0] < b[0] || a[1] < b[1]);
+const eff = (o) => (o.V > 0 ? o.F.map(() => 1e9 + o.V) : o.F);
+const dominates = (a, b) => a.every((x, m) => x <= b[m]) && a.some((x, m) => x < b[m]);
 
 function crowding(pts) {
   const n = pts.length, d = pts.map(() => 0);
   if (n <= 2) return d.fill(Infinity);
-  for (let m = 0; m < 2; m++) {
+  for (let m = 0; m < pts[0].length; m++) {
     const o = [...pts.keys()].sort((a, b) => pts[a][m] - pts[b][m]);
     const span = pts[o[n - 1]][m] - pts[o[0]][m] || 1;
     d[o[0]] = d[o[n - 1]] = Infinity;
@@ -117,14 +117,15 @@ export function createQiea(P, sc, { N = 20, A = 60, dtheta = 0.05 * Math.PI, see
   return { step, probs, get archive() { return archive; }, get evals() { return evals; }, get gen() { return gen; } };
 }
 
-/** Cheapest, knee-point (balanced) and greenest feasible plans from an archive. */
+/** Cheapest, knee-point (balanced), greenest and lowest-fuel feasible plans from an archive. */
 export function recommend(archive) {
   const ok = archive.filter((o) => o.V === 0).sort((a, b) => a.F[0] - b.F[0]);
   if (!ok.length) return null;
-  const lo = [0, 1].map((m) => Math.min(...ok.map((o) => o.F[m]))), hi = [0, 1].map((m) => Math.max(...ok.map((o) => o.F[m])));
-  const n = (o, m) => (o.F[m] - lo[m]) / (hi[m] - lo[m] || 1);
-  const knee = ok.reduce((best, o) => (Math.hypot(n(o, 0), n(o, 1)) < Math.hypot(n(best, 0), n(best, 1)) ? o : best));
-  return { cheapest: ok[0], balanced: knee, greenest: ok.reduce((b, o) => (o.F[1] < b.F[1] ? o : b)), front: ok };
+  const M = [0, 1, 2];
+  const lo = M.map((m) => Math.min(...ok.map((o) => o.F[m]))), hi = M.map((m) => Math.max(...ok.map((o) => o.F[m])));
+  const dist = (o) => Math.hypot(...M.map((m) => (o.F[m] - lo[m]) / (hi[m] - lo[m] || 1)));
+  const best = (score) => ok.reduce((b, o) => (score(o) < score(b) ? o : b));
+  return { cheapest: ok[0], balanced: best(dist), greenest: best((o) => o.F[1]), leanest: best((o) => o.F[2]), front: ok };
 }
 
 export const bitsOf = (genome) => Uint8Array.from(genome, Number);

@@ -21,8 +21,8 @@ Smart India Hackathon 2026 · Problem Statement **SIH26138** · Team **C-Suite**
 Fuel is a fleet's biggest cost and its biggest emissions source. A fleet manager has to decide **which vessel, how fast, which fuel and whether to use shore power** on every lane, while still carrying all the cargo on time and meeting emission rules. This project does that in three steps:
 
 1. **Predict** fuel burn for any vessel, speed and sea state, with a 90% range.
-2. **Optimise** the whole fleet with a quantum-inspired evolutionary algorithm (QIEA), trading annual cost against well-to-wake CO₂e.
-3. **Decide and adapt**: pick the cheapest, balanced or greenest plan, check FuelEU compliance, and re-optimise live when a disruption hits.
+2. **Optimise** the whole fleet with a quantum-inspired evolutionary algorithm (QIEA), minimising annual cost, well-to-wake CO₂e and fuel burned together.
+3. **Decide and adapt**: pick the cheapest, balanced, greenest or fuel-saver plan, check FuelEU compliance, and re-optimise live when a disruption hits.
 
 ## Results
 
@@ -30,15 +30,15 @@ Default scenario: $100/t CO₂e carbon price, FuelEU 2030 cap, balanced plan, ag
 
 | Metric | Result |
 |---|---|
-| Well-to-wake CO₂e | **−56%** (661 → 289 kt/yr) |
-| Fuel burned | **−23%** (175.7 → 134.7 kt VLSFO-eq/yr) |
-| Annual cost | +9% ($236.2M → $256.6M) |
-| GHG intensity | 52.4 g/MJ, **meets** the FuelEU 2030 cap of 85.69 |
+| Well-to-wake CO₂e | **−57%** (661 → 287 kt/yr) |
+| Fuel burned | **−26%** (175.7 → 130.3 kt VLSFO-eq/yr) |
+| Annual cost | +10% ($236.2M → $260.8M) |
+| GHG intensity | 53.0 g/MJ, **meets** the FuelEU 2030 cap of 85.69 |
 | Fuel prediction error | **3.93%** MAPE on held-out voyages |
 | Real-ship check | 15.7% error on **820** EU MRV 2024 container ships after calibration |
-| Early search | QIEA hypervolume **0.608** vs NSGA-II 0.192 at ~25% of budget (3.2×) |
+| Early search | QIEA reaches the best-front region after **800** evaluations vs 2,200 for NSGA-II (2.8× faster) |
 
-At full budget NSGA-II is slightly ahead on 8 lanes (0.687 vs 0.675), and QIEA edges it at 32 lanes (0.719 vs 0.716). Its advantage is reaching good plans quickly.
+Hypervolume is measured on all three objectives (cost, CO₂e, fuel). At full budget NSGA-II is ahead on 8 lanes (0.603 vs 0.438), while QIEA is ahead at 16 lanes (0.477 vs 0.388) and 32 lanes (0.535 vs 0.508). Its strengths are reaching good plans quickly and scaling to bigger fleets.
 
 ## Features
 
@@ -47,7 +47,8 @@ At full budget NSGA-II is slightly ahead on 8 lanes (0.687 vs 0.675), and QIEA e
 - **Scenario Planner**: 36 scenarios (carbon price × FuelEU cap × grid × forecast) with the full Pareto front
 - **Live Optimiser**: runs the QIEA in your browser and animates the Q-bit grid
 - **Disruption Replanning**: cyclone, port closure, fuel price shock, ships off-hire, biofuel supply cut
-- **Lane Network**: map of the eight lanes on real coastlines
+- **Your Fleet Data**: upload your own fleet (ships available, charter rate, design fuel per class) and lane (demand, distance, transit limit) CSVs and re-optimise in the browser
+- **Lane Network**: map of the eight lanes on real coastlines, plus "Why this plan": for the selected lane, every alternative fuel, speed, vessel and shore-power choice is re-run through the fleet model and explained (what breaks, or what you would trade)
 - **Fuel Prediction**: physics vs ML vs hybrid, prediction interval, feature importance
 
 **Compliance & Analytics portal**
@@ -63,9 +64,9 @@ At full budget NSGA-II is slightly ahead on 8 lanes (0.687 vs 0.675), and QIEA e
 flowchart LR
   A[Voyage, vessel, fuel<br/>and lane data] --> B[Hybrid fuel model<br/>physics × GBM]
   B --> C[72-bit fleet genome<br/>9 bits × 8 lanes]
-  C --> D[QIEA<br/>cost vs CO₂e]
+  C --> D[QIEA<br/>cost · CO₂e · fuel]
   D --> E{Constraints OK?}
-  E -- yes --> F[Pareto front<br/>cheapest · balanced · greenest]
+  E -- yes --> F[Pareto front<br/>cheapest · balanced · greenest · fuel-saver]
   E -- no --> D
   F --> G{Disruption?}
   G -- yes --> D
@@ -75,7 +76,7 @@ flowchart LR
 
 **Decisions.** Each lane has 9 bits: vessel class (2), cruising speed (3, from 10 to 20.5 kn), fuel (3: VLSFO, LNG, Bio-LNG, B30 biofuel, grey methanol, bio-methanol, green ammonia, green hydrogen) and shore power (1).
 
-**Objectives.** Minimise annual cost ($M: fuel, carbon, charter, shore power) and well-to-wake CO₂e (kt/yr). Weekly cargo demand is always met, because ships are sized from demand, capacity and round-trip time.
+**Objectives.** Minimise three things at once: annual cost ($M: fuel, carbon, charter, shore power), well-to-wake CO₂e (kt/yr) and fuel burned (kt VLSFO-equivalent/yr). Weekly cargo demand is always met, because ships are sized from demand, capacity and round-trip time.
 
 **Constraints.** Speed limit, transit time, bunkering range, fleet size per class, fuel supply and the GHG-intensity cap. Any feasible plan ranks above any infeasible one.
 
