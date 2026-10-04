@@ -587,22 +587,56 @@ def scenarios(P, budget):
     return out
 
 
+FAMILY = np.array([0, 1, 1, 0, 2, 2, 3, 4])  # oil, LNG, methanol, ammonia, hydrogen (index = FUELS order)
+# ponytail: illustrative one-off conversion $M per ship entering a fuel family, for a 48 t/day engine, scaled by design fuel.
+# Moving back to oil is free (dual-fuel engines burn oil). Myopic: each year sees the cost amortised over AMORT_YEARS, no foresight.
+CONVERT_MUSD = np.array([0, 10, 10, 0, 8, 8, 15, 20], float)
+AMORT_YEARS = 5
+
+
+def conversions(d, prev_f):
+    """One-off conversion capex ($M) and ships converted, per candidate, vs the previous year's fuel per lane."""
+    moved = (FAMILY[d["f"]] != FAMILY[prev_f]) & (CONVERT_MUSD[d["f"]] > 0)
+    return (moved * d["ships"] * CONVERT_MUSD[d["f"]] * V_FD[d["v"]] / 48).sum(1), (moved * d["ships"]).sum(1)
+
+
 def roadmap(P, budget=8000):
-    """Cheapest FuelEU-compliant plan per year vs business-as-usual (VLSFO at design speed, paying penalties).
+    """Year-by-year FuelEU-compliant plan from today's conventional fleet, charging fuel-family conversions between years,
+    vs the same years optimised independently and vs business-as-usual (VLSFO at design speed, paying penalties).
     ponytail: ramps are linear illustrative assumptions (carbon $80->200/t, green-fuel supply x0.5->x2, grid 0.71->0.45)."""
-    out = []
+    out, prev, prev_ind = [], None, None
     for i, year in enumerate(range(2025, 2036)):
         f = i / 10
         sc = {"carbon": 80 + 120 * f, "cap": fueleu_target(year), "grid": 0.71 - 0.26 * f, "robust": False}
         Py = {**P, "supply": P["supply"] * (0.5 + 1.5 * f)}
-        X, F, V, _ = qiea(Py, sc, budget, 0)
-        ok = V == 0
-        x = X[ok][np.argmin(F[ok][:, 0])] if ok.any() else X[np.argmin(V)]
-        plan, conv = plan_json(x, Py, sc), plan_json(conventional(Py, sc), Py, sc)
+        conv_x = conventional(Py, sc)
+        if prev is None:
+            prev = prev_ind = decode(conv_x[None], P["nl"])[2][0]
+
+        def with_switching(X, P_, sc_, prev=prev):
+            F, V = evaluate(X, P_, sc_)
+            F = F.copy()
+            F[:, 0] += conversions(lanes_eval(X, P_, sc_), prev)[0] / AMORT_YEARS
+            return F, V
+
+        def cheapest(X, F, V):
+            ok = V == 0
+            return (X[ok][np.argmin(F[ok][:, 0])] if ok.any() else X[np.argmin(V)]), bool(ok.any())
+
+        x, ok = cheapest(*qiea(Py, sc, budget, 0, fn=with_switching)[:3])
+        xi, _ = cheapest(*qiea(Py, sc, budget, 0)[:3])
+        d, di = lanes_eval(x[None], Py, sc), lanes_eval(xi[None], Py, sc)
+        capex, ships = (float(a[0]) for a in conversions(d, prev))
+        capex_i, ships_i = (float(a[0]) for a in conversions(di, prev_ind))
+        prev, prev_ind = d["f"][0], di["f"][0]
+        plan, ind, conv = plan_json(x, Py, sc), plan_json(xi, Py, sc), plan_json(conv_x, Py, sc)
         out.append({"year": year, "target": sc["cap"], "carbon": round(sc["carbon"]), "grid": round(sc["grid"], 3),
-                    "supply_mult": round(0.5 + 1.5 * f, 2), "feasible": bool(ok.any()),
+                    "supply_mult": round(0.5 + 1.5 * f, 2), "feasible": ok,
                     "plan": {k: plan[k] for k in ("cost_musd", "co2_kt", "energy_pj", "intensity", "fuel_mix_pj", "cost_breakdown")},
+                    "capex_musd": round(capex, 2), "converted_ships": int(ships),
                     "lanes": [{k: l[k] for k in ("lane", "fuel", "vessel", "speed", "ships")} for l in plan["lanes"]],
+                    "independent": {"cost_musd": ind["cost_musd"], "co2_kt": ind["co2_kt"], "intensity": ind["intensity"],
+                                    "capex_musd": round(capex_i, 2), "converted_ships": int(ships_i)},
                     "bau": {"cost_musd": conv["cost_musd"], "co2_kt": conv["co2_kt"], "intensity": conv["intensity"],
                             "penalty_musd": round(fueleu_penalty_musd(conv["intensity"], conv["energy_pj"], sc["cap"]), 2)}})
     return out
@@ -623,6 +657,11 @@ def selfcheck(P):
     assert decode(x[None], P["nl"])[2].tolist() == [[7] * P["nl"]]
     slow_h2 = np.tile(encode(0, 0, 7, 0), P["nl"])  # hydrogen at 10 kn cannot reach Singapore on one tank
     assert evaluate(slow_h2[None], P, {"carbon": 0, "cap": None, "grid": 0.71, "robust": False})[1][0] > 0
+    sc0, oil = {"carbon": 0, "cap": None, "grid": 0.71, "robust": False}, np.zeros(P["nl"], int)
+    for fuel, paid in ((3, False), (1, True), (2, True)):  # B30 is drop-in oil; LNG and Bio-LNG need a conversion
+        d = lanes_eval(np.tile(encode(3, 4, fuel, 0), P["nl"])[None], P, sc0)
+        assert (conversions(d, oil)[0][0] > 0) == paid
+    assert conversions(d, np.full(P["nl"], 1))[0][0] == 0  # LNG -> Bio-LNG stays in the gas family
 
 
 def main():
