@@ -22,7 +22,7 @@ Fuel is a fleet's biggest cost and its biggest emissions source. A fleet manager
 
 1. **Predict** fuel burn for any vessel, speed and sea state, with a 90% range.
 2. **Optimise** the whole fleet with a quantum-inspired evolutionary algorithm (QIEA), minimising annual cost, well-to-wake CO₂e and fuel burned together.
-3. **Decide and adapt**: pick the cheapest, balanced, greenest or fuel-saver plan, check FuelEU compliance, and re-optimise live when a disruption hits.
+3. **Decide and adapt**: pick the cheapest, balanced, greenest or fuel-saver plan (or **Express**: today's delivery speed with the best fuel mix at that speed), check FuelEU compliance, and re-optimise live when a disruption hits.
 
 ## Results
 

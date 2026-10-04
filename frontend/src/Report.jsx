@@ -3,7 +3,7 @@ import { fmt, pct } from './format';
 
 // Printable plan report: hidden on screen, the only thing on the page when printing (Save as PDF).
 const GRID = { '0.71': 'India grid (0.71 kg CO2e/kWh)', '0.05': 'Renewable PPA (0.05 kg CO2e/kWh)' };
-const PICK = { cheapest: 'Cheapest', balanced: 'Balanced', greenest: 'Greenest', leanest: 'Fuel-saver' };
+const PICK = { cheapest: 'Cheapest', balanced: 'Balanced', greenest: 'Greenest', leanest: 'Fuel-saver', express: 'Express' };
 
 const H = ({ children }) => <h2 className="text-[13px] font-bold uppercase tracking-wider border-b border-slate-400 pb-1 mt-6 mb-2 break-after-avoid">{children}</h2>;
 const Table = ({ head, rows, right = [] }) => (

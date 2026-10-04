@@ -10,7 +10,7 @@ import {
   pct, PlanKpis, PrimaryButton, ScenarioControls, ScenarioStrip, Stat, tip, usePalette,
 } from '../ui';
 
-const PICKS = ['cheapest', 'balanced', 'greenest', 'leanest'];
+const PICKS = ['cheapest', 'balanced', 'greenest', 'leanest', 'express'];
 const title = (k) => k[0].toUpperCase() + k.slice(1);
 const leadFuel = (plan) => Object.entries(plan.fuel_mix_pj).sort((a, b) => b[1] - a[1])[0];
 const totalShips = (plan) => plan.lanes.reduce((a, l) => a + l.ships, 0);
@@ -112,7 +112,15 @@ const PickCards = () => {
                 <div key={a}><div className="text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400">{a}</div><div className="font-mono text-xs font-semibold text-slate-900 dark:text-white">{b}</div></div>
               ))}
             </div>
-            <div className="mt-2 flex items-center gap-2 text-[11px] text-slate-500 dark:text-slate-400"><FuelChip name={leadFuel(pl)[0]} /> leads the mix</div>
+            <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-slate-500 dark:text-slate-400">
+              <FuelChip name={leadFuel(pl)[0]} /> leads the mix
+              <span className="ml-auto font-mono">avg transit {fmt(pl.lanes.reduce((a, l) => a + l.transit_days, 0) / pl.lanes.length, 2)} d</span>
+            </div>
+            {k === 'express' && (
+              <div className="mt-1.5 text-[11px] text-slate-600 dark:text-slate-400">
+                {pl.limit_met ? "Sails as fast as today's fleet on every lane, with the best fuel mix at that speed." : "Today's speed can't meet this GHG cap; this is the fastest compliant plan."}
+              </div>
+            )}
           </button>
         );
       })}
@@ -295,8 +303,10 @@ const LaneMap = ({ lanes, selected, onSelect }) => {
 const LaneWhy = ({ lane }) => {
   const { s, plan, cap } = useScenario();
   const i = R.problem.lanes.indexOf(lane);
-  const w = whyLane(bitsOf(plan.genome), R.problem, { carbon: +s.carbon, cap, grid: +s.grid, robust: s.robust === '1' }, i);
-  const P = R.problem, l = plan.lanes[i];
+  // Express plans are judged against the express transit limits they were optimised for.
+  const P = s.pick === 'express' && plan.limit_met ? { ...R.problem, tmax: R.express_tmax } : R.problem;
+  const w = whyLane(bitsOf(plan.genome), P, { carbon: +s.carbon, cap, grid: +s.grid, robust: s.robust === '1' }, i);
+  const l = plan.lanes[i];
   const byCost = (a, b) => (a.broken.length - b.broken.length) || (a.dF[0] - b.dF[0]);
   const groups = [
     ['Fuel', l.fuel, w.fuel.sort(byCost).map((o) => [R.fuels[o.change.f].name, o])],

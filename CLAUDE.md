@@ -31,7 +31,7 @@ Key invariants spanning files:
 - Genome: 9 bits per lane (vessel 2, speed 3, fuel 3, shore power 1); 72 bits for 8 lanes.
 - Objectives F = `[cost $M/yr, well-to-wake CO2e kt/yr, fuel kt VLSFO-eq/yr]`; hypervolume is 3-D (`hv3d`). Infeasible plans are handled by constraint domination (`eff`). The fuel-model search reuses `qiea` with its own 2-objective `fn`, so archives size their objective count from the first evaluation.
 - Roadmap (`fleet.py::roadmap`) is sequential from the conventional fleet: each year's QIEA uses a wrapped `fn` adding `conversions()` capex / `AMORT_YEARS` to cost; it also stores an `independent` per-year solve for comparison. Fuel families: `FAMILY`, costs: `CONVERT_MUSD`.
-- Recommendation picks per scenario: `cheapest`, `balanced` (knee), `greenest`, `leanest` (shown as "Fuel-saver"). Pick lists live in `ui.jsx` CONTROLS, `pages/fleet.jsx`, `pages/live.jsx`, `Report.jsx`, and labels in `i18n/translations.js`.
+- Recommendation picks per scenario: `cheapest`, `balanced` (knee), `greenest`, `leanest` (shown as "Fuel-saver"), and `express`: a separate QIEA run with transit limits `express_tmax` (conventional fleet's transit +2%), knee of that front; `limit_met` false means it fell back to the fastest compliant plan. Live Optimiser and CSV upload pages compute only the first four. Pick lists live in `ui.jsx` CONTROLS, `pages/fleet.jsx`, `pages/live.jsx`, `Report.jsx`, and labels in `i18n/translations.js`.
 
 Frontend structure:
 - `App.jsx`: portal shell (Fleet Operations / Compliance & Analytics), header, Report button (`window.print()` renders the print-only `Report.jsx`).

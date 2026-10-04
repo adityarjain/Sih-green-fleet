@@ -29,4 +29,10 @@ assert.equal(why.fuel.length, R.fuels.length - 1, 'every other fuel must be trie
 assert.ok(why.fuel.some((o) => o.broken.includes('range')), 'hydrogen on Chennai-Singapore must break bunkering range');
 assert.ok(why.fuel.every((o) => o.broken.length || o.dF.some((x) => x > 0.05)), 'a feasible swap that beats the plan on every objective means the plan is dominated');
 assert.match(consequence({ broken: [], dF: [-1, 2, 0] }, R.problem, 1), /^saves \$1\.0M, but adds 2\.0 kt CO2e$/);
-console.log(`explain OK; fleet CSV OK; engine OK: ${R.check.genomes.length} reference genomes match; live QIEA front has ${recommend(q.archive).front.length} plans`);
+for (const [key, sc] of Object.entries(R.scenarios)) {
+  if (!sc.feasible) continue;
+  const ex = sc.picks.express;
+  assert.ok(ex && ex.feasible, `express plan missing or infeasible in ${key}`);
+  if (ex.limit_met) ex.lanes.forEach((l, i) => assert.ok(l.transit_days <= R.express_tmax[i] + 1e-6, `${key} ${l.lane} slower than express limit`));
+}
+console.log(`express OK; explain OK; fleet CSV OK; engine OK: ${R.check.genomes.length} reference genomes match; live QIEA front has ${recommend(q.archive).front.length} plans`);

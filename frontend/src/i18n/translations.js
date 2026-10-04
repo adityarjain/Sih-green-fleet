@@ -43,6 +43,7 @@ export const TRANSLATIONS = {
     balanced: 'संतुलित',
     greenest: 'सबसे हरित',
     leanest: 'सबसे कम ईंधन',
+    express: 'एक्सप्रेस',
     meetsCap: 'सीमा के भीतर',
     breachesCap: 'सीमा का उल्लंघन',
     noCap: 'कोई सीमा नहीं',

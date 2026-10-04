@@ -561,6 +561,17 @@ def conventional(P, sc):
     return np.concatenate(genes)
 
 
+def knee(F):
+    n = (F - F.min(0)) / np.where(np.ptp(F, 0) > 0, np.ptp(F, 0), 1)
+    return int(np.argmin(np.linalg.norm(n, axis=1)))
+
+
+def express_tmax(P, conv):
+    """Express service: each lane's transit capped at the conventional fleet's (today's speed), +2%, rounded up to 0.05 d."""
+    sea = lanes_eval(conv[None], P, {"carbon": 0, "cap": None, "grid": 0.71, "robust": False})["sea"][0]
+    return np.ceil(sea * 1.02 * 20) / 20
+
+
 def scenarios(P, budget):
     out, conv = {}, None
     for carbon in (0, 100, 200):
@@ -568,7 +579,9 @@ def scenarios(P, budget):
             for grid in (0.71, 0.05):
                 for robust in (False, True):
                     sc = {"carbon": carbon, "cap": CAPS[cap], "grid": grid, "robust": robust}
-                    conv = conventional(P, sc) if conv is None else conv
+                    if conv is None:
+                        conv = conventional(P, sc)
+                        P_fast = {**P, "tmax": express_tmax(P, conv)}
                     X, F, V, _ = qiea(P, sc, budget, 0)
                     key = f"{carbon}|{cap}|{grid}|{int(robust)}"
                     ok = V == 0
@@ -578,11 +591,19 @@ def scenarios(P, budget):
                     X, F = X[ok], F[ok]
                     o = np.argsort(F[:, 0])
                     X, F = X[o], F[o]
-                    n = (F - F.min(0)) / np.where(np.ptp(F, 0) > 0, np.ptp(F, 0), 1)
-                    picks = {"cheapest": 0, "balanced": int(np.argmin(np.linalg.norm(n, axis=1))),
+                    picks = {"cheapest": 0, "balanced": knee(F),
                              "greenest": int(np.argmin(F[:, 1])), "leanest": int(np.argmin(F[:, 2]))}
-                    out[key] = {"feasible": True, "front": np.round(F, 3).tolist(),
-                                "picks": {k: {"i": i, **plan_json(X[i], P, sc)} for k, i in picks.items()},
+                    plans = {k: {"i": i, **plan_json(X[i], P, sc)} for k, i in picks.items()}
+                    # Express: best cost/CO2e/fuel balance among plans that sail as fast as today's fleet.
+                    # If the GHG cap makes that impossible, fall back to the fastest compliant plan on the front.
+                    XE, FE, VE, _ = qiea(P_fast, sc, budget, 0)
+                    fast = VE == 0
+                    if fast.any():
+                        xe, met = XE[fast][knee(FE[fast])], True
+                    else:
+                        xe, met = X[np.argmin(lanes_eval(X, P, sc)["sea"].mean(1))], False
+                    plans["express"] = {**plan_json(xe, P, sc), "limit_met": met}
+                    out[key] = {"feasible": True, "front": np.round(F, 3).tolist(), "picks": plans,
                                 "conventional": plan_json(conv, P, sc)}
     return out
 
@@ -705,6 +726,7 @@ def main():
     check = {"sc": base_sc, "genomes": ["".join(map(str, x)) for x in g.tolist()], "F": CF.tolist(), "V": CV.tolist()}
 
     data = {"problem": problem_json(P), "check": check, "roadmap": road, "mrv": mrv,
+            "express_tmax": express_tmax(P, conventional(P, base_sc)).tolist(),
             "fueleu": {"targets": FUELEU, "eur_usd": EUR_USD, "eur_per_t": 2400, "mj_per_t": 41000},
             "prediction": pred, "benchmark": bench, "scalability": scale, "scenarios": scen,
             "fuels": [{"name": f[0], "wtw": f[1], "price": f[2], "range_days": f[3], "capex_mult": f[4],
