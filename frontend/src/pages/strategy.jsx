@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { BadgeCheck, Banknote, CalendarRange, Coins, Database, Gauge, Leaf, Scale, Ship, Table2, Target, TrendingDown } from 'lucide-react';
+import { BadgeCheck, Banknote, CalendarRange, Coins, Database, Gauge, Leaf, Scale, Ship, Table2, Target, TrendingDown, Wrench } from 'lucide-react';
 import { Bar, BarChart, CartesianGrid, Legend, Line, LineChart, ReferenceLine, ResponsiveContainer, Scatter, ScatterChart, Tooltip, XAxis, YAxis } from 'recharts';
 import { R, useLanguage, useScenario } from '../context';
 import { axis, CapBadge, dot, fmt, fuelColor, fuelOrder, grid, legend, PageHeader, Panel, ScenarioStrip, Seg, Stat, tip, usePalette } from '../ui';
@@ -148,21 +148,22 @@ export const Validation = () => {
 };
 
 /* ================================================================ transition roadmap */
-const FAMILY = { VLSFO: 'Oil', 'B30 biofuel': 'Oil', LNG: 'LNG', 'Bio-LNG': 'LNG', 'Grey methanol': 'Methanol', 'Bio-methanol': 'Methanol', 'Green ammonia': 'Ammonia', 'Green hydrogen': 'Hydrogen' };
+const OIL = new Set(['VLSFO', 'B30 biofuel']);
+const sum = (rows, f) => rows.reduce((a, r) => a + f(r), 0);
 
 export const Roadmap = () => {
   const { t } = useLanguage();
   const p = usePalette();
   const road = R.roadmap;
   const fuels = [...new Set(road.flatMap((r) => Object.keys(r.plan.fuel_mix_pj)))].sort(fuelOrder);
-  let cum = 0, prev = null;
+  let cum = 0;
   const rows = road.map((r) => {
     const bau = r.bau.cost_musd + r.bau.penalty_musd;
-    cum += bau - r.plan.cost_musd;
-    const conversions = r.lanes.filter((l, i) => FAMILY[l.fuel] !== (prev ? FAMILY[prev[i].fuel] : 'Oil')).reduce((a, l) => a + l.ships, 0);
-    prev = r.lanes;
-    return { ...r, bauTotal: bau, cum, conversions, alt: r.lanes.filter((l) => FAMILY[l.fuel] !== 'Oil').length };
+    cum += bau - r.plan.cost_musd - r.capex_musd;
+    return { ...r, bauTotal: bau, cum, alt: r.lanes.filter((l) => !OIL.has(l.fuel)).length };
   });
+  const aware = { ships: sum(road, (r) => r.converted_ships), capex: sum(road, (r) => r.capex_musd), total: sum(road, (r) => r.plan.cost_musd + r.capex_musd) };
+  const indep = { ships: sum(road, (r) => r.independent.converted_ships), capex: sum(road, (r) => r.independent.capex_musd), total: sum(road, (r) => r.independent.cost_musd + r.independent.capex_musd) };
   const mix = road.map((r) => ({ year: r.year, ...Object.fromEntries(fuels.map((f) => [f, r.plan.fuel_mix_pj[f] || 0])) }));
   const intensity = road.map((r) => ({ year: r.year, Target: r.target, Plan: r.plan.intensity, 'Business as usual': r.bau.intensity }));
   const savings = rows.map((r) => ({ year: r.year, 'Cumulative saving': r.cum }));
@@ -170,13 +171,37 @@ export const Roadmap = () => {
   const co2Saved = road.reduce((a, r) => a + r.bau.co2_kt - r.plan.co2_kt, 0);
   return (
     <div className="space-y-6">
-      <PageHeader title={t('transitionRoadmap', 'Transition Roadmap 2025–2035')} subtitle="Cheapest FuelEU-compliant plan for each year as the cap tightens, carbon prices rise, green-fuel supply grows and the grid decarbonises" />
+      <PageHeader title={t('transitionRoadmap', 'Transition Roadmap 2025–2035')} subtitle="Cheapest FuelEU-compliant path from today's fleet, paying for every fuel-system conversion, as the cap tightens, carbon prices rise, green-fuel supply grows and the grid decarbonises" />
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
         <Stat label="2035 intensity" value={fmt(last.plan.intensity)} sub={<CapBadge ok={last.plan.intensity <= last.target}>g/MJ · target {last.target}</CapBadge>} icon={Gauge} tone="text-emerald-600 dark:text-emerald-400" />
-        <Stat label="Saving vs business as usual" value={`$${fmt(last.cum, 0)}M`} sub="cumulative 2025–2035, incl. avoided FuelEU penalties" icon={Banknote} tone="text-macblue-500" />
+        <Stat label="Saving vs business as usual" value={`$${fmt(last.cum, 0)}M`} sub="cumulative 2025–2035, after conversions, incl. avoided FuelEU penalties" icon={Banknote} tone="text-macblue-500" />
         <Stat label="CO2e avoided" value={`${fmt(co2Saved / 1000, 2)} Mt`} sub="cumulative well-to-wake, 11 years" icon={Leaf} tone="text-emerald-600 dark:text-emerald-400" />
-        <Stat label="New fuel systems by 2035" value={`${last.alt} / ${last.lanes.length} lanes`} sub="LNG, methanol, ammonia or hydrogen; the rest run drop-in B30 or VLSFO" icon={Ship} />
+        <Stat label="Ships converted 2025–2035" value={aware.ships} sub={`$${fmt(aware.capex, 0)}M one-off; ${last.alt}/${last.lanes.length} lanes on a new fuel system by 2035`} icon={Ship} />
       </div>
+      <Panel icon={Wrench} title="Planning the path vs planning each year"
+        note="Same years, carbon prices and caps. Planning each year alone picks that year's cheapest fuel and ignores what converting ships costs.">
+        <div className="overflow-x-auto">
+          <table className="mac-table">
+            <thead><tr><th>Approach</th><th className="text-right">Ships converted</th><th className="text-right">Conversion spend</th><th className="text-right">Operating cost, 11 years</th><th className="text-right">Total, 11 years</th></tr></thead>
+            <tbody>
+              {[['Transition-aware path (this roadmap)', aware], ['Each year optimised alone', indep]].map(([name, a], k) => (
+                <tr key={name}>
+                  <td className="font-semibold text-slate-900 dark:text-white">{name}</td>
+                  <td className="text-right font-mono">{a.ships}</td>
+                  <td className="text-right font-mono">${fmt(a.capex)}M</td>
+                  <td className="text-right font-mono">${fmt(a.total - a.capex, 0)}M</td>
+                  <td className={`text-right font-mono ${k === 0 ? 'font-semibold text-slate-900 dark:text-white' : ''}`}>${fmt(a.total, 0)}M</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p className="mt-3 text-xs text-slate-600 dark:text-slate-400">
+          {aware.total <= indep.total
+            ? `The path converts ${indep.ships - aware.ships} fewer ships and costs $${fmt(indep.total - aware.total, 0)}M less over 11 years, while meeting every year's FuelEU target.`
+            : `The path converts ${indep.ships - aware.ships} fewer ships but costs $${fmt(aware.total - indep.total, 0)}M more over 11 years; it trades some operating savings for a steadier fleet.`}
+        </p>
+      </Panel>
       <div className="grid lg:grid-cols-3 gap-5">
         <Panel className="lg:col-span-2" icon={CalendarRange} title="Fuel energy mix by year" note="PJ per year in the cheapest compliant plan.">
           <ResponsiveContainer width="100%" height={300}>
@@ -220,7 +245,7 @@ export const Roadmap = () => {
         <Panel className="lg:col-span-2" icon={Table2} title="Year-by-year plan" pad={false}>
           <div className="overflow-x-auto">
             <table className="mac-table">
-              <thead><tr><th>Year</th><th className="text-right">Target</th><th className="text-right">Carbon</th><th className="text-right">Plan cost</th><th className="text-right">BAU + penalty</th><th className="text-right">Intensity</th><th className="text-right">New-fuel lanes</th><th className="text-right">Ships switching</th></tr></thead>
+              <thead><tr><th>Year</th><th className="text-right">Target</th><th className="text-right">Carbon</th><th className="text-right">Plan cost</th><th className="text-right">BAU + penalty</th><th className="text-right">Intensity</th><th className="text-right">New-fuel lanes</th><th className="text-right">Conversions</th></tr></thead>
               <tbody>
                 {rows.map((r) => (
                   <tr key={r.year}>
@@ -230,14 +255,14 @@ export const Roadmap = () => {
                     <td className="text-right font-mono whitespace-nowrap">${fmt(r.bau.cost_musd)}M + ${fmt(r.bau.penalty_musd)}M</td>
                     <td className="text-right font-mono">{fmt(r.plan.intensity)}</td>
                     <td className="text-right font-mono">{r.alt}/{r.lanes.length}</td>
-                    <td className="text-right font-mono">{r.conversions || '—'}</td>
+                    <td className="text-right font-mono whitespace-nowrap">{r.converted_ships ? `${r.converted_ships} · $${fmt(r.capex_musd)}M` : '—'}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
           <p className="px-4 py-3 text-[11px] text-slate-500 dark:text-slate-400">
-            Illustrative ramps: carbon $80→$200/t, green-fuel supply ×0.5→×2, grid 0.71→0.45 kg CO2/kWh. "Ships switching" counts ships moving to a different fuel family than the year before. Each year is optimised independently, so some lanes switch back and forth; a production version would add switching costs to smooth the path. Alternative-fuel ship costs are carried in the charter premium, so no separate retrofit capex is added.
+            Illustrative ramps: carbon $80→$200/t, green-fuel supply ×0.5→×2, grid 0.71→0.45 kg CO2/kWh. "Conversions" are ships moving into a new fuel family (LNG, methanol, ammonia, hydrogen), charged a one-off illustrative cost ($8–20M per ship, scaled by engine size) in that year; drop-in B30 and moving back to oil are free. Each year's optimiser sees the conversion spread over 5 years, so it does not flip fuels for small yearly gains. It plans one year at a time, without foresight of later caps.
           </p>
         </Panel>
       </div>

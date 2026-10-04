@@ -52,7 +52,7 @@ Hypervolume is measured on all three objectives (cost, CO₂e, fuel). At full bu
 - **Fuel Prediction**: physics vs ML vs hybrid, prediction interval, feature importance
 
 **Compliance & Analytics portal**
-- FuelEU penalty and pooling, a 2025–2035 transition roadmap, real-ship validation, optimiser benchmark, method and assumptions
+- FuelEU penalty and pooling, a 2025–2035 transition roadmap that pays for fuel-system conversions (compared against planning each year alone), real-ship validation, optimiser benchmark, method and assumptions
 
 **Everywhere**: a one-click **PDF plan report**, dark mode, English and Hindi, and phone and tablet layouts.
 
@@ -143,7 +143,7 @@ Real-ship calibration is optional: put the EU MRV 2024 public emission report (f
 - The fuel model is trained on synthetic voyages, then calibrated per vessel class on real EU MRV data, which covers EU voyages only.
 - Fuel prices and emission factors are illustrative; verify them before real use.
 - FuelEU caps are applied to Indian lanes as a what-if scenario, not as current law.
-- Roadmap years are optimised independently; transition costs between years are not modelled.
+- The roadmap charges illustrative one-off conversion costs when a lane moves to a new fuel family, but plans one year at a time (no foresight of later caps).
 - "Quantum-inspired" means classical algorithms using Q-bit representations. No quantum hardware is used.
 
 ## References

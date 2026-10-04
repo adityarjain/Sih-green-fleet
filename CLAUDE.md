@@ -30,6 +30,7 @@ Key invariants spanning files:
 - `fleet.py::lanes_eval/evaluate` and `frontend/src/engine.js::evaluate` are the same model written twice (JS powers Live Optimiser and Disruption Replanning). Any change to costs, constraints, genes or objectives must be made in both, then `fleet.py` re-run and `npm run check` passed.
 - Genome: 9 bits per lane (vessel 2, speed 3, fuel 3, shore power 1); 72 bits for 8 lanes.
 - Objectives F = `[cost $M/yr, well-to-wake CO2e kt/yr, fuel kt VLSFO-eq/yr]`; hypervolume is 3-D (`hv3d`). Infeasible plans are handled by constraint domination (`eff`). The fuel-model search reuses `qiea` with its own 2-objective `fn`, so archives size their objective count from the first evaluation.
+- Roadmap (`fleet.py::roadmap`) is sequential from the conventional fleet: each year's QIEA uses a wrapped `fn` adding `conversions()` capex / `AMORT_YEARS` to cost; it also stores an `independent` per-year solve for comparison. Fuel families: `FAMILY`, costs: `CONVERT_MUSD`.
 - Recommendation picks per scenario: `cheapest`, `balanced` (knee), `greenest`, `leanest` (shown as "Fuel-saver"). Pick lists live in `ui.jsx` CONTROLS, `pages/fleet.jsx`, `pages/live.jsx`, `Report.jsx`, and labels in `i18n/translations.js`.
 
 Frontend structure:
