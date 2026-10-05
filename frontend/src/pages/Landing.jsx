@@ -107,7 +107,7 @@ export const Landing = () => {
 
       <footer className="bg-white/60 dark:bg-[#111419]/60 border-t border-slate-200/80 dark:border-white/[0.08] py-4 text-[11px] text-slate-500 dark:text-slate-400">
         <div className="max-w-5xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <div>Green Fleet Optimization System (SIH 2026 • SIH26138)</div>
+          <div>© 2026 Team C-Suite · Green Fleet Optimization System (SIH 2026 • SIH26138)</div>
           <div className="font-mono text-slate-400 dark:text-slate-500">Synthetic voyages • illustrative prices</div>
         </div>
       </footer>

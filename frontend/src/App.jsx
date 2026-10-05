@@ -36,11 +36,12 @@ const PAGES = {
 
 const iconBtn = 'p-1.5 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors dark:bg-white/[0.06] dark:text-slate-300 dark:hover:bg-white/[0.12] border border-slate-200/60 dark:border-white/[0.06]';
 
-export const Brand = ({ small }) => {
+export const Brand = ({ small, onHome }) => {
   const { t } = useLanguage();
+  const Wrap = onHome ? 'button' : 'div';
   return (
-    <div className="flex items-center gap-3 min-w-0">
-      <div className={`${small ? 'h-8 w-8' : 'h-9 w-9'} rounded-lg bg-slate-900 text-white dark:bg-white dark:text-slate-900 flex items-center justify-center shadow-xs shrink-0`}>
+    <Wrap {...(onHome && { type: 'button', onClick: onHome, 'aria-label': 'Go to dashboard' })} className={`flex items-center gap-3 min-w-0 text-left ${onHome ? 'rounded-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-macblue-500' : ''}`}>
+      <div className={`${small ? 'h-8 w-8' : 'h-9 w-9'} rounded-lg bg-slate-900 text-white dark:bg-white dark:text-slate-900 flex items-center justify-center shrink-0`}>
         <Ship size={small ? 18 : 20} />
       </div>
       <div className="min-w-0">
@@ -51,7 +52,7 @@ export const Brand = ({ small }) => {
         </div>
         <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium truncate">{t('systemSubtitle', 'Quantum-Inspired Fuel Prediction & Fleet Planning')}</p>
       </div>
-    </div>
+    </Wrap>
   );
 };
 
@@ -80,14 +81,14 @@ const printReport = () => {
   document.title = title;
 };
 
-const Header = () => {
+const Header = ({ onHome }) => {
   const { portal, user, logout } = useAuth();
   const { t } = useLanguage();
   const isFleet = portal === PORTALS.FLEET;
   return (
     <header className="sticky top-0 z-40 bg-white dark:bg-[#0a0c11] border-b border-slate-200 dark:border-white/[0.08]">
       <div className="px-4 sm:px-6 py-2.5 flex items-center justify-between gap-4">
-        <Brand />
+        <Brand onHome={onHome} />
         <div className="flex items-center gap-2.5 shrink-0">
           <div className="hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold bg-slate-100 text-slate-700 dark:bg-white/[0.05] dark:text-slate-300 border border-slate-200/80 dark:border-white/[0.08]">
             {isFleet ? <Compass size={13} className="text-macblue-500" /> : <ShieldCheck size={13} className="text-macblue-500" />}
@@ -193,7 +194,7 @@ function Main() {
     <>
     <Report />
     <div className="print:hidden min-h-screen bg-[#F7F8FA] dark:bg-[#06080c] flex flex-col">
-      <Header />
+      <Header onHome={() => setActive(pages[0].id)} />
       <MobileTabs pages={pages} active={active} onChange={setActive} />
       <div className="flex-1 flex min-w-0">
         <Sidebar pages={pages} active={active} onChange={setActive} />
