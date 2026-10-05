@@ -222,7 +222,7 @@ export const LaneTable = ({ lanes, onSelect, selected }) => {
               <td className="whitespace-nowrap text-slate-600 dark:text-slate-400">{l.vessel}</td>
               <td className="text-right font-mono">{l.ships}</td>
               <td className="text-right font-mono whitespace-nowrap">{fmt(l.speed)} kn</td>
-              <td className="text-right font-mono whitespace-nowrap">{fmt(l.transit_days, 2)} d</td>
+              <td className="text-right font-mono whitespace-nowrap">{fmt(l.transit_days, 2)} d <span className="text-slate-500 dark:text-slate-400">({Math.round(l.transit_days * 24)}&nbsp;h)</span></td>
               <td><FuelChip name={l.fuel} /></td>
               <td>{l.shore_power
                 ? <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-macblue-500"><PlugZap size={12} />Connected</span>

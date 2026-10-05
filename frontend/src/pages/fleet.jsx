@@ -346,7 +346,7 @@ export const LaneNetwork = () => {
   const rows = [
     ['Distance', `${fmt(info.nm, 0)} nm`], ['Weekly demand', `${fmt(info.teu_week, 0)} TEU each way`],
     ['Vessel', l.vessel], ['Ships on lane', l.ships], ['Cruising speed', `${fmt(l.speed)} kn (design ${fmt(DESIGN[l.vessel])})`],
-    ['Transit', `${fmt(l.transit_days, 2)} of ${fmt(info.max_transit_days)} days allowed`], ['Shore power', l.shore_power ? 'Connected at berth' : 'Auxiliary engines'],
+    ['Transit', `${fmt(l.transit_days, 2)} d (${Math.round(l.transit_days * 24)} h), limit ${Math.round(info.max_transit_days * 24)} h`], ['Shore power', l.shore_power ? 'Connected at berth' : 'Auxiliary engines'],
   ];
   return (
     <div className="space-y-6">
