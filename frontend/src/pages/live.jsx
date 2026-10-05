@@ -29,6 +29,11 @@ function useLiveRun() {
       while (q.gen < target) q.step();
       const rec = recommend(q.archive);
       const done = q.evals >= budget;
+      if (done && rec) { // Express: a quick extra search held to today's delivery speed (express_tmax)
+        const qx = createQiea({ ...P, tmax: R.express_tmax }, sc, { seed: Math.floor(Math.random() * 1e9) });
+        while (qx.evals < budget) qx.step();
+        rec.express = recommend(qx.archive)?.balanced;
+      }
       setRun({ gen: q.gen, evals: q.evals, budget, rec, probs: q.probs(), ms: performance.now() - t0, done });
       if (!done) raf.current = requestAnimationFrame(tick);
     };
@@ -153,7 +158,7 @@ export const LiveOptimizer = ({ onNavigate }) => {
             <table className="mac-table">
               <thead><tr><th>Plan</th><th className="text-right">Cost (live)</th><th className="text-right">Cost (offline)</th><th className="text-right">CO2e (live)</th><th className="text-right">CO2e (offline)</th><th>GHG cap</th></tr></thead>
               <tbody>
-                {PICKS.map((k) => {
+                {[...PICKS, 'express'].filter((k) => run.rec[k]).map((k) => {
                   const o = run.rec[k], off = sc.picks[k];
                   const d = evaluate(o.g, R.problem, liveSc(s, cap), true);
                   return (
@@ -168,7 +173,7 @@ export const LiveOptimizer = ({ onNavigate }) => {
               </tbody>
             </table>
           </div>
-          <p className="px-4 py-3 text-[11px] text-slate-500 dark:text-slate-400">Each run uses a fresh random seed, so live and offline fronts differ slightly; both come from the same algorithm and objective. `npm run check` verifies the browser engine reproduces fleet.py exactly.</p>
+          <p className="px-4 py-3 text-[11px] text-slate-500 dark:text-slate-400">Each run uses a fresh random seed, so live and offline results differ slightly; both come from the same algorithm and objectives. Express is a second quick search held to today's delivery speed. The browser engine is tested to reproduce the Python results exactly.</p>
         </Panel>
       )}
     </div>
