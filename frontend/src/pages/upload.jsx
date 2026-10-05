@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { AlertTriangle, CheckCircle2, Download, FileSpreadsheet, Lock, Play, RotateCcw, Sparkles, Upload } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, Download, FileSpreadsheet, FlaskConical, Lock, Play, RotateCcw, Upload } from 'lucide-react';
 import { R, useLanguage, useScenario } from '../context';
 import { createQiea, evaluate, recommend } from '../engine';
 import { applyEdits, fleetTemplate, laneTemplate, readTable } from '../fleetdata';
@@ -77,7 +77,7 @@ export const FleetUpload = ({ onNavigate }) => {
               <Upload size={14} />Upload CSV
               <input type="file" accept=".csv,text/csv" multiple className="sr-only" onChange={onFiles} />
             </label>
-            <Btn icon={Sparkles} onClick={() => load([['example_fleet.csv', EXAMPLE[0]], ['example_lanes.csv', EXAMPLE[1]]])}>Try an example</Btn>
+            <Btn icon={FlaskConical} onClick={() => load([['example_fleet.csv', EXAMPLE[0]], ['example_lanes.csv', EXAMPLE[1]]])}>Try an example</Btn>
             {files.length > 0 && <Btn icon={RotateCcw} onClick={() => load([])}>Reset</Btn>}
           </div>
           <div className="mt-3 text-[11px] text-slate-500 dark:text-slate-400 space-y-0.5">

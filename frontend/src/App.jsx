@@ -85,7 +85,7 @@ const Header = () => {
   const { t } = useLanguage();
   const isFleet = portal === PORTALS.FLEET;
   return (
-    <header className="sticky top-0 z-40 bg-white/80 dark:bg-black/55 backdrop-blur-2xl border-b border-slate-200/80 dark:border-white/[0.08] shadow-2xs">
+    <header className="sticky top-0 z-40 bg-white dark:bg-[#0a0c11] border-b border-slate-200 dark:border-white/[0.08]">
       <div className="px-4 sm:px-6 py-2.5 flex items-center justify-between gap-4">
         <Brand />
         <div className="flex items-center gap-2.5 shrink-0">
@@ -118,7 +118,7 @@ const Sidebar = ({ pages, active, onChange }) => {
   const { t } = useLanguage();
   const { plan } = useScenario();
   return (
-    <aside className="hidden md:flex w-56 bg-white/70 dark:bg-black/45 backdrop-blur-2xl border-r border-slate-200/80 dark:border-white/[0.08] flex-col h-[calc(100vh-3.75rem)] sticky top-[3.75rem] select-none shrink-0">
+    <aside className="hidden md:flex w-56 bg-white dark:bg-[#0a0c11] border-r border-slate-200/80 dark:border-white/[0.08] flex-col h-[calc(100vh-3.75rem)] sticky top-[3.75rem] select-none shrink-0">
       <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
         <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 px-2.5 pb-1.5">
           {portal === PORTALS.FLEET ? t('fleetNav', 'Fleet Navigation') : t('complianceNav', 'Compliance Navigation')}
@@ -128,7 +128,7 @@ const Sidebar = ({ pages, active, onChange }) => {
           return (
             <button key={id} type="button" onClick={() => onChange(id)} aria-current={on ? 'page' : undefined}
               className={`w-full flex items-center justify-between px-3 py-2 rounded-md text-xs font-medium transition-all ${on
-                ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-950 font-semibold shadow-2xs'
+                ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-950 font-semibold'
                 : 'text-slate-700 hover:bg-slate-100/80 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-white/[0.06] dark:hover:text-white'}`}>
               <span className="flex items-center gap-2.5 truncate">
                 <Icon size={15} className={on ? 'text-white dark:text-slate-950' : 'text-slate-400'} />
@@ -143,7 +143,7 @@ const Sidebar = ({ pages, active, onChange }) => {
         <div className="flex items-center justify-between font-medium">
           <span>{t('status', 'Solver status')}</span>
           <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-semibold">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />{t('frontReady', 'Pareto front ready')}
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />{t('frontReady', 'Pareto front ready')}
           </span>
         </div>
         <div className="flex items-center justify-between font-mono">
@@ -162,7 +162,7 @@ const MobileTabs = ({ pages, active, onChange }) => {
     if (b) nav.current.scrollTo({ left: b.offsetLeft - 12, behavior: 'smooth' });
   }, [active]);
   return (
-    <nav ref={nav} className="md:hidden flex gap-1 overflow-x-auto px-3 py-2 border-b border-slate-200/80 dark:border-white/[0.08] bg-white/70 dark:bg-black/45 backdrop-blur-2xl">
+    <nav ref={nav} className="md:hidden flex gap-1 overflow-x-auto px-3 py-2 border-b border-slate-200/80 dark:border-white/[0.08] bg-white dark:bg-[#0a0c11]">
       {pages.map(({ id, key, label, icon: Icon }) => (
         <button key={id} type="button" onClick={() => onChange(id)} aria-current={active === id ? 'page' : undefined}
           className={`shrink-0 flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium ${active === id
@@ -192,7 +192,7 @@ function Main() {
   return (
     <>
     <Report />
-    <div className="print:hidden min-h-screen bg-[#F7F8FA] dark:bg-[#06080c] dark:bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(37,99,235,0.08),rgba(0,0,0,0))] flex flex-col">
+    <div className="print:hidden min-h-screen bg-[#F7F8FA] dark:bg-[#06080c] flex flex-col">
       <Header />
       <MobileTabs pages={pages} active={active} onChange={setActive} />
       <div className="flex-1 flex min-w-0">

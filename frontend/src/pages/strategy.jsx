@@ -255,7 +255,7 @@ export const Roadmap = () => {
                     <td className="text-right font-mono whitespace-nowrap">${fmt(r.bau.cost_musd)}M + ${fmt(r.bau.penalty_musd)}M</td>
                     <td className="text-right font-mono">{fmt(r.plan.intensity)}</td>
                     <td className="text-right font-mono">{r.alt}/{r.lanes.length}</td>
-                    <td className="text-right font-mono whitespace-nowrap">{r.converted_ships ? `${r.converted_ships} · $${fmt(r.capex_musd)}M` : '—'}</td>
+                    <td className="text-right font-mono whitespace-nowrap">{r.converted_ships ? `${r.converted_ships} · $${fmt(r.capex_musd)}M` : 'None'}</td>
                   </tr>
                 ))}
               </tbody>

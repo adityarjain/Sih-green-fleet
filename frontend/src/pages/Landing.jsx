@@ -51,7 +51,7 @@ export const Landing = () => {
   const { t } = useLanguage();
   return (
     <div className="min-h-screen bg-[#F7F8FA] dark:bg-[#0D0F12] flex flex-col text-slate-900 dark:text-[#EAECEF] antialiased">
-      <header className="bg-white/90 dark:bg-[#111419]/90 backdrop-blur-md border-b border-slate-200/80 dark:border-white/[0.08]">
+      <header className="bg-white dark:bg-[#111419] border-b border-slate-200/80 dark:border-white/[0.08]">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
           <Brand small />
           <div className="flex items-center gap-2 shrink-0"><Toggles /></div>
@@ -59,11 +59,10 @@ export const Landing = () => {
       </header>
 
       <main className="flex-1 w-full relative overflow-hidden">
-        <div aria-hidden className="absolute inset-x-0 -top-40 h-[480px] bg-[radial-gradient(ellipse_60%_60%_at_50%_0%,rgba(0,122,255,0.12),transparent)] dark:bg-[radial-gradient(ellipse_60%_60%_at_50%_0%,rgba(0,122,255,0.18),transparent)]" />
         <div className="relative max-w-5xl mx-auto px-4 py-12 sm:py-16">
           <div className="text-center space-y-3 mb-10">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-200 dark:bg-white/[0.06] dark:text-slate-300 dark:border-white/[0.08] text-xs font-medium font-mono">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="w-2 h-2 rounded-full bg-emerald-500" />
               <span>{t('systemNotice', 'Maritime Decarbonisation • SIH26138')}</span>
             </div>
             <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white uppercase max-w-3xl mx-auto">

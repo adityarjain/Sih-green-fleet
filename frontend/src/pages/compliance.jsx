@@ -1,4 +1,4 @@
-import { Activity, ArrowDown, Atom, BarChart3, BookOpen, CheckCircle2, Cpu, Database, Gauge, Leaf, Network, RefreshCw, Scale, ShieldCheck, Sparkles, Table2, Target, Timer, Wallet } from 'lucide-react';
+import { Activity, ArrowDown, Atom, BarChart3, BookOpen, CheckCircle2, Cpu, Database, Gauge, Leaf, Network, RefreshCw, Scale, ShieldCheck, Table2, Target, Timer, Wallet } from 'lucide-react';
 import { Bar, BarChart, CartesianGrid, LabelList, Legend, Line, LineChart, ReferenceLine, ResponsiveContainer, Scatter, ScatterChart, Tooltip, XAxis, YAxis } from 'recharts';
 import { CAPS, R, useLanguage, useScenario } from '../context';
 import { axis, CapBadge, dot, fmt, FuelChip, grid, legend, PageHeader, Panel, pct, PrimaryButton, ScenarioStrip, Stat, tip, usePalette } from '../ui';
@@ -258,7 +258,7 @@ export const Method = () => {
             </div>
             <Down />
             <div className="w-full max-w-xl p-4 rounded-xl bg-emerald-50/80 dark:bg-emerald-950/30 border-2 border-dashed border-emerald-400 dark:border-emerald-700 text-center">
-              <div className="font-extrabold text-emerald-950 dark:text-emerald-200 text-xs uppercase flex items-center justify-center gap-1.5"><Sparkles size={14} />6. Pareto front → recommendation</div>
+              <div className="font-extrabold text-emerald-950 dark:text-emerald-200 text-xs uppercase flex items-center justify-center gap-1.5"><Target size={14} />6. Pareto front → recommendation</div>
               <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-1">Cheapest, balanced (knee point), greenest and fuel-saver plans, each with a plain-language explanation</p>
             </div>
           </div>

@@ -136,7 +136,7 @@ export const LiveOptimizer = ({ onNavigate }) => {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
         <Stat label="Generation" value={run ? run.gen : 0} sub={`${run ? run.evals.toLocaleString() : 0} of ${(+budget).toLocaleString()} evaluations`} icon={Cpu} tone="text-macblue-500" />
         <Stat label="Plans on front" value={run?.rec ? run.rec.front.length : 0} sub={run?.rec ? 'feasible, mutually non-dominated' : 'no feasible plan yet'} icon={Grid3x3} />
-        <Stat label="Best cost / lowest CO2e" value={run?.rec ? `$${fmt(run.rec.cheapest.F[0], 0)}M` : '—'} sub={run?.rec ? `${fmt(run.rec.greenest.F[1], 0)} kt CO2e at the green end` : 'run the optimiser'} icon={Zap} tone="text-emerald-600 dark:text-emerald-400" />
+        <Stat label="Best cost / lowest CO2e" value={run?.rec ? `$${fmt(run.rec.cheapest.F[0], 0)}M` : 'Not run'} sub={run?.rec ? `${fmt(run.rec.greenest.F[1], 0)} kt CO2e at the green end` : 'run the optimiser'} icon={Zap} tone="text-emerald-600 dark:text-emerald-400" />
         <Stat label="Elapsed" value={run ? `${fmt(run.ms / 1000, 1)} s` : '0.0 s'} sub={run?.done ? 'finished' : running ? 'searching…' : 'idle'} icon={Timer} />
       </div>
       <div className="grid lg:grid-cols-2 gap-5">

@@ -33,7 +33,7 @@ export default {
         },
       },
       fontFamily: {
-        sans: ['-apple-system', 'BlinkMacSystemFont', 'SF Pro Text', 'Inter', 'system-ui', 'sans-serif'],
+        sans: ['IBM Plex Sans', '-apple-system', 'BlinkMacSystemFont', 'system-ui', 'sans-serif'],
         mono: ['SF Mono', 'JetBrains Mono', 'Menlo', 'Consolas', 'monospace'],
       },
       boxShadow: {

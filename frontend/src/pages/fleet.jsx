@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { Activity, Anchor, CheckCircle2, Cpu, Fuel, Gauge, Lightbulb, MapPinned, Pause, Play, Route, ShieldCheck, Ship, SlidersHorizontal, Sparkles, Target, Wallet } from 'lucide-react';
+import { Activity, Anchor, BarChart3, CheckCircle2, ClipboardList, Cpu, Fuel, Gauge, Lightbulb, MapPinned, Pause, Play, Route, ShieldCheck, Ship, SlidersHorizontal, Target, TrendingUp, Wallet } from 'lucide-react';
 import { Bar, BarChart, CartesianGrid, Legend, Line, LineChart, ReferenceLine, ResponsiveContainer, Scatter, ScatterChart, Tooltip, XAxis, YAxis } from 'recharts';
 import { R, useLanguage, useScenario } from '../context';
 import BASEMAP from '../data/basemap.json';
@@ -165,7 +165,7 @@ export const Planner = () => {
         <Panel className="lg:col-span-3" icon={Target} title="Cost vs emissions trade-off" note="Every point is a feasible fleet plan that no other plan beats on cost, CO2e and fuel together, shown here on cost and CO2e. Click a ringed point to select it.">
           <ParetoChart />
         </Panel>
-        <Panel className="lg:col-span-2" icon={Sparkles} title="Recommended plans"><PickCards /></Panel>
+        <Panel className="lg:col-span-2" icon={ClipboardList} title="Recommended plans"><PickCards /></Panel>
       </div>
       <div className="grid lg:grid-cols-2 gap-5">
         <Panel icon={Fuel} title="Fuel energy mix"><FuelMixChart /></Panel>
@@ -475,7 +475,7 @@ export const Prediction = () => {
         <Stat label="QI-tuned hybrid error" value={`${fmt(H.mape)}%`} sub="MAPE on held-out voyages" icon={Target} tone="text-macblue-500" />
         <Stat label="Unseen speeds" value={`${fmt(HX.mape)}%`} sub={<>hybrid vs <span className="text-amber-600 dark:text-amber-400 font-semibold">{fmt(MX.mape)}%</span> pure ML</>} icon={Gauge} />
         <Stat label="90% interval" value={`±${fmt(P.conformal.halfwidth_pct)}%`} sub={`${fmt(P.conformal.coverage)}% empirical coverage`} icon={ShieldCheck} tone="text-emerald-600 dark:text-emerald-400" />
-        <Stat label="Top driver" value={imp[0].name} sub={`${fmt(imp[0].v, 0)}% of correction importance`} icon={Sparkles} />
+        <Stat label="Top driver" value={imp[0].name} sub={`${fmt(imp[0].v, 0)}% of correction importance`} icon={TrendingUp} />
       </div>
       <ModelDesign />
       <div className="grid lg:grid-cols-3 gap-5">
@@ -506,7 +506,7 @@ export const Prediction = () => {
             </ScatterChart>
           </ResponsiveContainer>
         </Panel>
-        <Panel icon={Sparkles} title="What drives deviation from physics" note="Feature importance of the hybrid correction model.">
+        <Panel icon={BarChart3} title="What drives deviation from physics" note="Feature importance of the hybrid correction model.">
           <ResponsiveContainer width="100%" height={260}>
             <BarChart data={imp} layout="vertical" margin={{ top: 0, right: 12, left: 0, bottom: 0 }}>
               <CartesianGrid stroke={p.grid} horizontal={false} />
