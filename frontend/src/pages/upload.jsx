@@ -7,7 +7,7 @@ import {
   CapBadge, fmt, FuelChip, liveSc, PageHeader, Panel, ScenarioStrip, Seg, Stat, VIOLATION_LABEL,
 } from '../ui';
 
-const PICKS = ['cheapest', 'balanced', 'greenest', 'leanest'];
+const PICKS = ['cheapest', 'balanced', 'greenest', 'leanest', 'express'];
 const VESSEL = R.vessels.map((v) => v.name);
 const FUEL = R.fuels.map((f) => f.name);
 const BUDGET = 8000;
@@ -37,7 +37,7 @@ export const FleetUpload = ({ onNavigate }) => {
   const [files, setFiles] = useState([]);
   const [result, setResult] = useState(null);
   const [busy, setBusy] = useState(false);
-  const [pick, setPick] = useState('balanced');
+  const [chosen, setPick] = useState('balanced');
 
   const load = (named) => { setFiles(named.map(([name, text]) => ({ name, ...readTable(text, R.problem) }))); setResult(null); };
   const onFiles = async (e) => load(await Promise.all([...e.target.files].map(async (f) => [f.name, await f.text()])));
@@ -53,12 +53,19 @@ export const FleetUpload = ({ onNavigate }) => {
       const q = createQiea(P, scLive, { seed: 7 });
       while (q.evals < BUDGET) q.step();
       const rec = recommend(q.archive);
+      if (rec) { // Express: today's speed on your distances, never looser than your own transit limits
+        const tmax = R.express_tmax.map((x, i) => Math.min(P.tmax[i], (x * P.dist[i]) / R.problem.dist[i]));
+        const qx = createQiea({ ...P, tmax }, scLive, { seed: 7 });
+        while (qx.evals < BUDGET) qx.step();
+        rec.express = recommend(qx.archive)?.balanced;
+      }
       const worst = rec ? null : q.archive.reduce((b, o) => (o.V < b.V ? o : b));
       setResult({ P, rec, broken: worst && Object.entries(evaluate(worst.g, P, scLive, true).violations).filter(([, v]) => v > 1e-9) });
       setBusy(false);
     }, 30);
   };
 
+  const pick = result?.rec?.[chosen] ? chosen : 'balanced'; // a re-run may have no Express plan
   const plan = result?.rec?.[pick];
   const detail = plan && evaluate(plan.g, result.P, scLive, true);
 
@@ -155,7 +162,8 @@ export const FleetUpload = ({ onNavigate }) => {
           </div>
 
           <Panel icon={CheckCircle2} title="Recommended plan with your data" pad={false}
-            action={<Seg value={pick} onChange={setPick} options={PICKS.map((k) => [k, t(k)])} />}>
+            note={result.rec.express ? undefined : "Express is not shown: no plan meets today's delivery speed with this fleet."}
+            action={<Seg value={pick} onChange={setPick} options={PICKS.filter((k) => result.rec[k]).map((k) => [k, t(k)])} />}>
             <div className="overflow-x-auto">
               <table className="mac-table">
                 <thead><tr><th>Lane</th><th>Vessel</th><th className="text-right">Ships</th><th className="text-right">Speed</th><th>Fuel</th><th>Shore power</th><th className="text-right">CO2e (kt/yr)</th></tr></thead>
