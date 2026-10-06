@@ -3,14 +3,14 @@ import { AlertTriangle, CheckCircle2, Download, FileSpreadsheet, FlaskConical, L
 import { R, useLanguage, useScenario } from '../context';
 import { createQiea, evaluate, recommend } from '../engine';
 import { applyEdits, fleetTemplate, laneTemplate, readTable } from '../fleetdata';
-import { CapBadge, fmt, FuelChip, PageHeader, Panel, ScenarioStrip, Seg, Stat } from '../ui';
+import {
+  CapBadge, fmt, FuelChip, liveSc, PageHeader, Panel, ScenarioStrip, Seg, Stat, VIOLATION_LABEL,
+} from '../ui';
 
 const PICKS = ['cheapest', 'balanced', 'greenest', 'leanest'];
-const title = (k) => k[0].toUpperCase() + k.slice(1);
 const VESSEL = R.vessels.map((v) => v.name);
 const FUEL = R.fuels.map((f) => f.name);
 const BUDGET = 8000;
-const VIOLATION_LABEL = { speed: 'Speed limit', transit: 'Transit time', range: 'Bunkering range', fleet: 'Fleet size', supply: 'Fuel supply', cap: 'GHG cap' };
 const EXAMPLE = [
   'vessel,teu,available\n"Panamax 4,500 TEU",4500,3\n"Feedermax 2,800 TEU",2800,5',
   'lane,teu_week\n"JNPT - Colombo",4200\n"Mundra - Jebel Ali",4800',
@@ -44,7 +44,7 @@ export const FleetUpload = ({ onNavigate }) => {
   // later files win when two files edit the same cell
   const edits = [...new Map(files.flatMap((f) => f.edits).map((e) => [`${e.arr}:${e.idx}`, e])).values()];
   const errors = files.flatMap((f) => f.errors.map((m) => `${f.name}: ${m}`));
-  const scLive = { carbon: +s.carbon, cap, grid: +s.grid, robust: s.robust === '1' };
+  const scLive = liveSc(s, cap);
 
   const run = () => {
     setBusy(true);
@@ -148,14 +148,14 @@ export const FleetUpload = ({ onNavigate }) => {
         <>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
             {[['cost_musd', 0, 'Cost', (v) => `$${fmt(v)}M`], ['co2_kt', 1, 'CO2e', (v) => `${fmt(v, 0)} kt`], ['fuel_kt_vlsfo_eq', 2, 'Fuel', (v) => `${fmt(v, 0)} kt`]].map(([k, m, label, f]) => (
-              <Stat key={k} label={`${label} · ${t(pick, title(pick))}`} value={f(result.rec[pick].F[m])}
+              <Stat key={k} label={`${label} · ${t(pick)}`} value={f(result.rec[pick].F[m])}
                 sub={<>standard data {f(offline.picks[pick][k])}</>} />
             ))}
             <Stat label="Plans on front" value={result.rec.front.length} sub="feasible, mutually non-dominated" />
           </div>
 
           <Panel icon={CheckCircle2} title="Recommended plan with your data" pad={false}
-            action={<Seg value={pick} onChange={setPick} options={PICKS.map((k) => [k, t(k, title(k))])} />}>
+            action={<Seg value={pick} onChange={setPick} options={PICKS.map((k) => [k, t(k)])} />}>
             <div className="overflow-x-auto">
               <table className="mac-table">
                 <thead><tr><th>Lane</th><th>Vessel</th><th className="text-right">Ships</th><th className="text-right">Speed</th><th>Fuel</th><th>Shore power</th><th className="text-right">CO2e (kt/yr)</th></tr></thead>

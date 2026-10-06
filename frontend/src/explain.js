@@ -37,7 +37,7 @@ const BROKEN = {
   supply: 'runs past the available bunker supply',
   cap: 'pushes the fleet over the GHG cap',
 };
-const EPS = [0.05, 0.05, 0.05];
+const EPS = 0.05;
 const part = (m, x) => [`$${Math.abs(x).toFixed(1)}M`, `${Math.abs(x).toFixed(1)} kt CO2e`, `${Math.abs(x).toFixed(1)} kt fuel`][m];
 const list = (a) => (a.length < 2 ? a.join('') : `${a.slice(0, -1).join(', ')} and ${a.at(-1)}`);
 
@@ -45,7 +45,7 @@ const list = (a) => (a.length < 2 ? a.join('') : `${a.slice(0, -1).join(', ')} a
 export function consequence(o, P, i) {
   if (o.broken.length) return list(o.broken.map((k) => (typeof BROKEN[k] === 'function' ? BROKEN[k](P, i) : BROKEN[k])));
   const gains = [], losses = [];
-  o.dF.forEach((x, m) => { if (x < -EPS[m]) gains.push(part(m, x)); else if (x > EPS[m]) losses.push(part(m, x)); });
+  o.dF.forEach((x, m) => { if (x < -EPS) gains.push(part(m, x)); else if (x > EPS) losses.push(part(m, x)); });
   if (!gains.length && !losses.length) return 'makes almost no difference';
   if (!gains.length) return `costs more on every count: +${list(losses)}`;
   if (!losses.length) return `would improve ${list(gains)}; a better plan exists here`;

@@ -6,12 +6,10 @@ import BASEMAP from '../data/basemap.json';
 import { bitsOf } from '../engine';
 import { consequence, whyLane } from '../explain';
 import {
-  axis, CapBadge, dot, fmt, fuelColor, fuelOrder, FuelChip, FuelMixChart, grid, LaneTable, legend, LinkButton, PageHeader, Panel,
-  pct, PlanKpis, PrimaryButton, ScenarioControls, ScenarioStrip, Stat, tip, usePalette,
+  axis, CapBadge, dot, fmt, FuelChip, fuelColor, FuelMixChart, fuelOrder, grid, LaneTable, legend, LinkButton, liveSc, PageHeader, Panel, pct, PlanKpis, PrimaryButton, ScenarioControls, ScenarioStrip, Stat, tip, usePalette,
 } from '../ui';
 
 const PICKS = ['cheapest', 'balanced', 'greenest', 'leanest', 'express'];
-const title = (k) => k[0].toUpperCase() + k.slice(1);
 const leadFuel = (plan) => Object.entries(plan.fuel_mix_pj).sort((a, b) => b[1] - a[1])[0];
 const totalShips = (plan) => plan.lanes.reduce((a, l) => a + l.ships, 0);
 const DESIGN = Object.fromEntries(R.vessels.map((v) => [v.name, v.design_speed]));
@@ -104,7 +102,7 @@ const PickCards = () => {
               ? 'border-slate-900 ring-1 ring-slate-900 bg-slate-50 dark:border-white dark:ring-white dark:bg-white/[0.06]'
               : 'border-slate-200 hover:border-slate-400 dark:border-white/[0.08] dark:hover:border-white/[0.2]'}`}>
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white">{t(k, title(k))}</span>
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white">{t(k)}</span>
               {on ? <CheckCircle2 size={15} className="text-macblue-500" /> : <CapBadge ok={ok}>{fmt(pl.intensity)} g/MJ</CapBadge>}
             </div>
             <div className="grid grid-cols-3 gap-2 mt-2">
@@ -305,7 +303,7 @@ const LaneWhy = ({ lane }) => {
   const i = R.problem.lanes.indexOf(lane);
   // Express plans are judged against the express transit limits they were optimised for.
   const P = s.pick === 'express' && plan.limit_met ? { ...R.problem, tmax: R.express_tmax } : R.problem;
-  const w = whyLane(bitsOf(plan.genome), P, { carbon: +s.carbon, cap, grid: +s.grid, robust: s.robust === '1' }, i);
+  const w = whyLane(bitsOf(plan.genome), P, liveSc(s, cap), i);
   const l = plan.lanes[i];
   const byCost = (a, b) => (a.broken.length - b.broken.length) || (a.dF[0] - b.dF[0]);
   const groups = [

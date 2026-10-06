@@ -16,8 +16,11 @@ const FUEL_INDEX = Object.fromEntries(R.fuels.map((f, i) => [f.name, i]));
 export const fuelColor = (p, name) => (name === 'Bio-LNG' ? p.bioLng : name in FUEL_INDEX ? p.s[FUEL_INDEX[name]] : p.ref);
 export const fuelOrder = (a, b) => (FUEL_INDEX[a] ?? 99) - (FUEL_INDEX[b] ?? 99);
 
+export { fmt, pct } from './format';
 import { fmt, pct } from './format';
-export { fmt, pct };
+export const VIOLATION_LABEL = { speed: 'Speed limit', transit: 'Transit time', range: 'Bunkering range', fleet: 'Fleet size', supply: 'Fuel supply', cap: 'GHG cap' };
+export const liveSc = (s, cap) => ({ carbon: +s.carbon, cap, grid: +s.grid, robust: s.robust === '1' });
+
 
 /* ---------- recharts styling ---------- */
 export const axis = (p) => ({ tick: { fill: p.muted, fontSize: 11 }, stroke: p.axis, tickLine: false });

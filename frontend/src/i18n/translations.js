@@ -1,5 +1,5 @@
 export const TRANSLATIONS = {
-  en: { leanest: 'Fuel-saver' },
+  en: { cheapest: 'Cheapest', balanced: 'Balanced', greenest: 'Greenest', leanest: 'Fuel-saver', express: 'Express' },
   hi: {
     systemTitle: 'हरित बेड़ा अनुकूलन प्रणाली',
     systemSubtitle: 'क्वांटम-प्रेरित ईंधन पूर्वानुमान एवं बेड़ा योजना',

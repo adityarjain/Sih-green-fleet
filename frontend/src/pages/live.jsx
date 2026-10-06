@@ -3,7 +3,9 @@ import { Anchor, ArrowRight, CheckCircle2, CloudLightning, Cpu, Fuel, Gauge, Gri
 import { CartesianGrid, Legend, ResponsiveContainer, Scatter, ScatterChart, Tooltip, XAxis, YAxis } from 'recharts';
 import { R, useLanguage, useScenario, useTheme } from '../context';
 import { bitsOf, cloneProblem, createQiea, evaluate, recommend } from '../engine';
-import { axis, CapBadge, dot, fmt, FuelChip, legend, PageHeader, Panel, pct, ScenarioStrip, Seg, Stat, tip, usePalette } from '../ui';
+import {
+  axis, CapBadge, dot, fmt, FuelChip, legend, liveSc, PageHeader, Panel, pct, ScenarioStrip, Seg, Stat, tip, usePalette, VIOLATION_LABEL,
+} from '../ui';
 
 const PICKS = ['cheapest', 'balanced', 'greenest', 'leanest'];
 const VESSEL = R.vessels.map((v) => v.name);
@@ -42,7 +44,6 @@ function useLiveRun() {
   return { run, start, stop, reset };
 }
 
-const liveSc = (s, cap) => ({ carbon: +s.carbon, cap, grid: +s.grid, robust: s.robust === '1' });
 
 /* ---------- Q-bit superposition grid ---------- */
 const GROUPS = [['Vessel', 2], ['Speed', 3], ['Fuel', 3], ['Shore', 1]];
@@ -199,7 +200,6 @@ const DISRUPTIONS = [
   { id: 'supply', icon: Fuel, title: 'Biofuel supply cut', desc: 'Bio-methanol and Bio-LNG bunker supply halved.',
     apply: (P) => { P.supply[fuelIdx('Bio-methanol')] *= 0.5; P.supply[fuelIdx('Bio-LNG')] *= 0.5; } },
 ];
-const VIOLATION_LABEL = { speed: 'Speed limit', transit: 'Transit time', range: 'Bunkering range', fleet: 'Fleet size', supply: 'Fuel supply', cap: 'GHG cap' };
 
 const FlowStep = ({ n, title, state, children }) => {
   const tone = { done: 'border-emerald-300 bg-emerald-50/80 dark:border-emerald-800/60 dark:bg-emerald-950/30', warn: 'border-orange-300 bg-orange-50/80 dark:border-orange-800/60 dark:bg-orange-950/30',
