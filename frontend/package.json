@@ -11,7 +11,6 @@
     "check": "node engine.check.mjs"
   },
   "dependencies": {
-    "autoprefixer": "^10.5.5",
     "lucide-react": "^1.41.0",
     "postcss": "^8.5.28",
     "react": "^19.2.8",
